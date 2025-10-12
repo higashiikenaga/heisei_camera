@@ -3,29 +3,31 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>📼 平成レトロカメラ v2</title>
+<title>📼 平成レトロカメラ v3</title>
 <style>
 body{margin:0;padding:1rem;background:#111;color:#eee;font-family:sans-serif;text-align:center;}
-h2{margin-bottom:0.5rem;}
+h2{margin-bottom:.5rem;}
 #stage{position:relative;width:min(90vw,480px);aspect-ratio:4/3;margin:auto;background:#000;border:2px solid #333;overflow:hidden;}
 canvas{width:100%;height:100%;image-rendering:pixelated;image-rendering:crisp-edges;}
-#hud{position:absolute;inset:0;pointer-events:none;font-family:monospace;}
+#hud{position:absolute;inset:0;pointer-events:none;font-family:monospace;color:#f66;}
 .rec{position:absolute;top:10px;left:10px;display:flex;align-items:center;gap:6px;}
 .dot{width:10px;height:10px;border-radius:50%;background:red;box-shadow:0 0 6px #f00;}
 .date{position:absolute;bottom:10px;right:10px;color:#ffa64d;text-shadow:0 1px 2px #000;}
+.timecode{position:absolute;bottom:10px;left:10px;color:#f44;font-size:14px;text-shadow:0 0 4px #000;}
 button,select,input{margin:5px;padding:8px;border:none;border-radius:8px;background:#1d1d1d;color:#eee;font-weight:600;}
 #download{display:none;margin-top:10px;}
 label{font-size:0.9em;}
 </style>
 </head>
 <body>
-<h2>📼 平成カメラ</h2>
+<h2>📼 平成レトロカメラ v3</h2>
 
 <div id="stage">
   <canvas id="canvas" width="640" height="480"></canvas>
   <div id="hud">
     <div class="rec"><div class="dot" id="dot"></div><span>REC</span></div>
     <div class="date" id="date"></div>
+    <div class="timecode" id="timecode">00:00:00</div>
   </div>
 </div>
 
@@ -33,16 +35,15 @@ label{font-size:0.9em;}
 <select id="mode">
   <option value="dslr">📷 一眼風</option>
   <option value="compact">📸 コンデジ風</option>
-  <option value="8mm">📼 8ミリ風</option>
+  <option value="8mm">🎞 8ミリ風</option>
   <option value="vhs">📺 VHS風</option>
 </select>
-
-<label>テープノイズ:<input type="range" id="tape" min="0" max="100" value="10"></label>
+<label>テープノイズ:<input type="range" id="tape" min="0" max="100" value="15"></label>
 <label>🎙音声<input type="checkbox" id="mic" checked></label><br>
 <button id="photoBtn">📸 写真</button>
 <button id="recStart">🎥 録画</button>
 <button id="recStop" disabled>⏹ 停止</button>
-<a id="download" download="heisei_v2.webm">🎬 ダウンロード</a>
+<a id="download" download="heisei_v3.webm">🎬 ダウンロード</a>
 </div>
 
 <video id="video" autoplay playsinline muted style="display:none;"></video>
@@ -54,9 +55,9 @@ const canvas=document.getElementById("canvas");
 const ctx=canvas.getContext("2d",{willReadFrequently:true});
 const low=document.createElement("canvas");low.width=320;low.height=240;
 const lctx=low.getContext("2d",{willReadFrequently:true});
-let recorder,blobs=[];let mode="dslr";let stream=null;
+let recorder,blobs=[];let mode="dslr";let stream=null;let recTime=0;
 
-// カメラ起動（音声設定切替にも使う）
+// ====== カメラ起動 ======
 async function startCamera(){
   if(stream){stream.getTracks().forEach(t=>t.stop());}
   const withAudio=document.getElementById("mic").checked;
@@ -69,39 +70,53 @@ await startCamera();
 document.getElementById("mic").onchange=startCamera;
 document.getElementById("mode").onchange=e=>mode=e.target.value;
 
-function updateDate(){
+// ====== 日付・タイムコード ======
+function updateHUD(){
   const n=new Date();
-  document.getElementById("date").textContent=`${String(n.getFullYear()).slice(-2)}.${String(n.getMonth()+1).padStart(2,'0')}.${String(n.getDate()).padStart(2,'0')} ${String(n.getHours()).padStart(2,'0')}:${String(n.getMinutes()).padStart(2,'0')}`;
+  document.getElementById("date").textContent=
+    `${String(n.getFullYear()).slice(-2)}.${String(n.getMonth()+1).padStart(2,'0')}.${String(n.getDate()).padStart(2,'0')}  ${String(n.getHours()).padStart(2,'0')}:${String(n.getMinutes()).padStart(2,'0')}`;
+  if(recTime>0){
+    const sec=Math.floor((Date.now()-recTime)/1000);
+    const h=String(sec/3600|0).padStart(2,'0');
+    const m=String((sec%3600)/60|0).padStart(2,'0');
+    const s=String(sec%60).padStart(2,'0');
+    document.getElementById("timecode").textContent=`${h}:${m}:${s}`;
+  }else{
+    document.getElementById("timecode").textContent="00:00:00";
+  }
 }
 
+// ====== 画質劣化（モード別） ======
 function process(img){
   const d=img.data,w=img.width,h=img.height;
   for(let i=0;i<d.length;i+=4){
     let r=d[i],g=d[i+1],b=d[i+2];
     const avg=(r+g+b)/3;
-
     if(mode==="8mm"){
-      // 🎞️ 軽めの粒ノイズ
-      const n=(Math.random()-.5)*35;
+      const n=(Math.random()-.5)*25;
       r=r*0.93+avg*0.07+n;
-      g=g*0.89+avg*0.11+n*0.7;
-      b=b*0.86+avg*0.14+n*1.0;
-
-      // 📺 柔らかい走査線（3行おき）
+      g=g*0.89+avg*0.11+n*0.6;
+      b=b*0.85+avg*0.15+n*1.0;
       if(((i/(4*w))|0)%3===0){r*=0.9;g*=0.9;b*=0.9;}
-
     }else if(mode==="compact"){
-      const n=(Math.random()-.5)*15;
-      r=r*1.1+n; g=g*1.05+n; b=b*1.05+n;
+      const n=(Math.random()-.5)*10;
+      r=r*1.15+n;g=g*1.08+n;b=b*1.08+n;
+      if(((i/(4*w))|0)%6===0){r*=0.97;g*=0.97;b*=0.97;}
+    }else if(mode==="vhs"){
+      const n=(Math.random()-.5)*50;
+      r+=n;g+=n;b+=n;
+      // 色ズレ（RGBオフセット）
+      if(((i/(4*w))|0)%2===0){b=b*0.9;g=g*1.1;}
     }else{
-      r=r*1.05; g=g*1.05; b=b*1.05;
+      // 一眼は鮮明＆高コントラスト
+      r*=1.08;g*=1.08;b*=1.1;
     }
-    d[i]=r; d[i+1]=g; d[i+2]=b;
+    d[i]=r;d[i+1]=g;d[i+2]=b;
   }
   return img;
 }
 
-// ---- render() の中の描画部を書き換え ----
+// ====== メイン描画 ======
 function render(){
   if(video.readyState>=2){
     const vw=video.videoWidth,vh=video.videoHeight;
@@ -111,36 +126,37 @@ function render(){
     let img=lctx.getImageData(0,0,low.width,low.height);
     lctx.putImageData(process(img),0,0);
 
-    // ====== 露出ゆらぎ (8mm専用) ======
-    let exp=1.0;
+    // ====== モードごとのfilter ======
+    if(mode==="dslr") ctx.filter="contrast(1.2) brightness(1.1)";
+    else if(mode==="compact") ctx.filter="contrast(1.1) saturate(1.2)";
+    else if(mode==="8mm") ctx.filter="blur(0.4px) brightness(1.05) contrast(1.05)";
+    else if(mode==="vhs") ctx.filter="contrast(0.95) saturate(0.9) brightness(1.02)";
+    else ctx.filter="none";
+
+    // ====== 8mm：露出ゆらぎ＋光漏れ ======
     if(mode==="8mm"){
-      exp=0.95+Math.random()*0.1;
-      ctx.filter=`brightness(${exp}) contrast(1.05)`;
-    } else {
-      ctx.filter="none";
+      const exp=0.96+Math.random()*0.08;
+      ctx.filter+=` brightness(${exp})`;
+      if(Math.random()<0.03){
+        const grad=ctx.createRadialGradient(
+          Math.random()*canvas.width,Math.random()*canvas.height,
+          20,canvas.width/2,canvas.height/2,canvas.width
+        );
+        const hue=Math.random()<0.5?"rgba(255,150,120,0.3)":"rgba(255,200,240,0.25)";
+        grad.addColorStop(0,hue);
+        grad.addColorStop(1,"rgba(255,180,100,0)");
+        ctx.fillStyle=grad;ctx.fillRect(0,0,canvas.width,canvas.height);
+      }
     }
 
-    // ====== 光漏れ (8mm専用) ======
-    if(mode==="8mm" && Math.random()<0.02){
-      const grad=ctx.createRadialGradient(
-        Math.random()*canvas.width,Math.random()*canvas.height,
-        30,canvas.width/2,canvas.height/2,canvas.width
-      );
-      grad.addColorStop(0,"rgba(255,200,150,0.4)");
-      grad.addColorStop(1,"rgba(255,150,100,0)");
-      ctx.fillStyle=grad;
-      ctx.fillRect(0,0,canvas.width,canvas.height);
-    }
-
-    // ====== VHS再生風ノイズ ======
-    if(mode==="vhs"){ // ←追加モード
+    // ====== VHS再生ゆらぎ ======
+    if(mode==="vhs"){
       const time=Date.now()/1000;
-      // 横揺れ: 周期的なシヌソイド変形
-      const offset=Math.sin(time*6)*2; // 周期的2pxずれ
+      const offset=Math.sin(time*6)*2;
       ctx.translate(offset,0);
     }
 
-    // ====== 描画処理 ======
+    // ====== 通常描画 ======
     const shake=(mode==="8mm")?(Math.random()*2-1):0;
     ctx.imageSmoothingEnabled=false;
     ctx.clearRect(0,0,canvas.width,canvas.height);
@@ -148,21 +164,19 @@ function render(){
 
     // ====== VHSノイズ帯 ======
     if(mode==="vhs"){
-      ctx.setTransform(1,0,0,1,0,0); // translate解除
+      ctx.setTransform(1,0,0,1,0,0);
       const barHeight=8;
       ctx.fillStyle="rgba(255,255,255,0.15)";
       for(let i=0;i<canvas.height;i+=60){
-        if(Math.random()<0.3){
+        if(Math.random()<0.4)
           ctx.fillRect(0,i+Math.random()*3,canvas.width,barHeight);
-        }
       }
-      // 端の黒帯
       ctx.fillStyle="rgba(0,0,0,0.25)";
       ctx.fillRect(0,0,canvas.width,6);
       ctx.fillRect(0,canvas.height-6,canvas.width,6);
     }
 
-    // ====== テープノイズ (共通) ======
+    // ====== テープノイズ ======
     const tapeVal=+document.getElementById("tape").value;
     if(Math.random()<tapeVal/1000){
       const y=Math.random()*canvas.height|0;
@@ -171,15 +185,13 @@ function render(){
     }
   }
 
-  updateDate();
+  updateHUD();
   document.getElementById("dot").style.opacity=(Date.now()/500%2>1)?1:0.3;
   requestAnimationFrame(render);
 }
-
-
 render();
 
-// 📸 写真
+// ====== 写真撮影 ======
 document.getElementById("photoBtn").onclick=()=>{
   canvas.toBlob(blob=>{
     const a=document.createElement("a");
@@ -190,17 +202,18 @@ document.getElementById("photoBtn").onclick=()=>{
   },"image/jpeg",mode==="compact"?0.6:0.9);
 };
 
-// 🎥 録画
+// ====== 録画 ======
 document.getElementById("recStart").onclick=()=>{
   blobs=[];
-  const fps=(mode==="8mm"?12:24);
+  recTime=Date.now();
+  const fps=(mode==="8mm"?12:(mode==="vhs"?15:24));
   const canvasStream=canvas.captureStream(fps);
-  // 音声ミックス
   const audioTrack=stream.getAudioTracks()[0];
   if(audioTrack)canvasStream.addTrack(audioTrack);
   recorder=new MediaRecorder(canvasStream,{mimeType:"video/webm"});
   recorder.ondataavailable=e=>{if(e.data.size>0)blobs.push(e.data);};
   recorder.onstop=()=>{
+    recTime=0;
     const blob=new Blob(blobs,{type:"video/webm"});
     const url=URL.createObjectURL(blob);
     const a=document.getElementById("download");
