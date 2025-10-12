@@ -34,7 +34,9 @@ label{font-size:0.9em;}
   <option value="dslr">📷 一眼風</option>
   <option value="compact">📸 コンデジ風</option>
   <option value="8mm">📼 8ミリ風</option>
+  <option value="vhs">📺 VHS風</option>
 </select>
+
 <label>テープノイズ:<input type="range" id="tape" min="0" max="100" value="10"></label>
 <label>🎙音声<input type="checkbox" id="mic" checked></label><br>
 <button id="photoBtn">📸 写真</button>
@@ -109,20 +111,20 @@ function render(){
     let img=lctx.getImageData(0,0,low.width,low.height);
     lctx.putImageData(process(img),0,0);
 
-    // ---- 🌞 露出ゆらぎ ----
+    // ====== 露出ゆらぎ (8mm専用) ======
     let exp=1.0;
     if(mode==="8mm"){
-      exp = 0.95 + Math.random()*0.1; // ±5%
-      ctx.filter = `brightness(${exp}) contrast(1.05)`;
+      exp=0.95+Math.random()*0.1;
+      ctx.filter=`brightness(${exp}) contrast(1.05)`;
     } else {
-      ctx.filter = "none";
+      ctx.filter="none";
     }
 
-    // ---- 📼 光漏れ演出 ----
-    if(mode==="8mm" && Math.random()<0.02){ // 約2%の確率で
+    // ====== 光漏れ (8mm専用) ======
+    if(mode==="8mm" && Math.random()<0.02){
       const grad=ctx.createRadialGradient(
-        Math.random()*canvas.width, Math.random()*canvas.height,
-        50, canvas.width/2, canvas.height/2, canvas.width
+        Math.random()*canvas.width,Math.random()*canvas.height,
+        30,canvas.width/2,canvas.height/2,canvas.width
       );
       grad.addColorStop(0,"rgba(255,200,150,0.4)");
       grad.addColorStop(1,"rgba(255,150,100,0)");
@@ -130,13 +132,37 @@ function render(){
       ctx.fillRect(0,0,canvas.width,canvas.height);
     }
 
-    // ---- 通常描画（手ブレあり） ----
+    // ====== VHS再生風ノイズ ======
+    if(mode==="vhs"){ // ←追加モード
+      const time=Date.now()/1000;
+      // 横揺れ: 周期的なシヌソイド変形
+      const offset=Math.sin(time*6)*2; // 周期的2pxずれ
+      ctx.translate(offset,0);
+    }
+
+    // ====== 描画処理 ======
     const shake=(mode==="8mm")?(Math.random()*2-1):0;
     ctx.imageSmoothingEnabled=false;
     ctx.clearRect(0,0,canvas.width,canvas.height);
     ctx.drawImage(low,shake,shake,canvas.width,canvas.height);
 
-    // ---- テープノイズ ----
+    // ====== VHSノイズ帯 ======
+    if(mode==="vhs"){
+      ctx.setTransform(1,0,0,1,0,0); // translate解除
+      const barHeight=8;
+      ctx.fillStyle="rgba(255,255,255,0.15)";
+      for(let i=0;i<canvas.height;i+=60){
+        if(Math.random()<0.3){
+          ctx.fillRect(0,i+Math.random()*3,canvas.width,barHeight);
+        }
+      }
+      // 端の黒帯
+      ctx.fillStyle="rgba(0,0,0,0.25)";
+      ctx.fillRect(0,0,canvas.width,6);
+      ctx.fillRect(0,canvas.height-6,canvas.width,6);
+    }
+
+    // ====== テープノイズ (共通) ======
     const tapeVal=+document.getElementById("tape").value;
     if(Math.random()<tapeVal/1000){
       const y=Math.random()*canvas.height|0;
@@ -149,6 +175,7 @@ function render(){
   document.getElementById("dot").style.opacity=(Date.now()/500%2>1)?1:0.3;
   requestAnimationFrame(render);
 }
+
 
 render();
 
