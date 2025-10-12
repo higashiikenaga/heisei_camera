@@ -1,288 +1,155 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>📼 平成カメラ Web</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>📼 平成レトロカメラ v2</title>
 <style>
-  :root { color-scheme: dark; }
-  body{margin:0; background:#0c0c0c; color:#eee; font:16px/1.4 system-ui, -apple-system, Segoe UI, Roboto, "Noto Sans JP", sans-serif; display:flex; flex-direction:column; align-items:center; gap:10px; padding:16px;}
-  header{font-weight:700; letter-spacing:.02em; opacity:.9; display:flex; align-items:center; gap:.5rem;}
-  main{width:min(92vw,520px); display:flex; flex-direction:column; align-items:center; gap:10px;}
-  #stage{position:relative; width:100%; aspect-ratio:4/3; background:#111; border:2px solid #222; border-radius:10px; overflow:hidden; box-shadow:0 8px 24px #0008;}
-  /* 表示用キャンバスは拡大してもドット荒れを維持 */
-  #display{width:100%; height:100%; image-rendering: pixelated; image-rendering: crisp-edges; display:block;}
-  #hud{position:absolute; inset:0; pointer-events:none; font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, "Noto Sans Mono", monospace;}
-  #hud .rec{position:absolute; left:10px; top:10px; display:flex; align-items:center; gap:8px; font-weight:700; text-shadow:0 1px 2px #000a;}
-  #hud .dot{width:12px; height:12px; border-radius:50%; background:#e22; box-shadow:0 0 8px #f00c;}
-  #hud .date{position:absolute; right:10px; bottom:10px; color:#ffa64d; text-shadow:0 1px 2px #000c; font-weight:700;}
-  #controls{display:grid; grid-template-columns:1fr auto; gap:10px; width:100%;}
-  #controls .row{grid-column:1 / -1; display:grid; grid-template-columns:1fr 1fr; gap:10px;}
-  button, select, input[type=range]{appearance:none; border:none; border-radius:10px; padding:12px; background:#1b1b1b; color:#eee; box-shadow: inset 0 0 0 1px #2a2a2a; font-weight:700;}
-  button.primary{background:#ff3b30; box-shadow: inset 0 0 0 1px #ff5f57; }
-  button:active{transform:translateY(1px);}
-  small{opacity:.7}
+body{margin:0;padding:1rem;background:#111;color:#eee;font-family:sans-serif;text-align:center;}
+h2{margin-bottom:0.5rem;}
+#stage{position:relative;width:min(90vw,480px);aspect-ratio:4/3;margin:auto;background:#000;border:2px solid #333;overflow:hidden;}
+canvas{width:100%;height:100%;image-rendering:pixelated;image-rendering:crisp-edges;}
+#hud{position:absolute;inset:0;pointer-events:none;font-family:monospace;}
+.rec{position:absolute;top:10px;left:10px;display:flex;align-items:center;gap:6px;}
+.dot{width:10px;height:10px;border-radius:50%;background:red;box-shadow:0 0 6px #f00;}
+.date{position:absolute;bottom:10px;right:10px;color:#ffa64d;text-shadow:0 1px 2px #000;}
+button,select,input{margin:5px;padding:8px;border:none;border-radius:8px;background:#1d1d1d;color:#eee;font-weight:600;}
+#download{display:none;margin-top:10px;}
+label{font-size:0.9em;}
 </style>
 </head>
 <body>
-  <header>📼 平成カメラ <small>（リアルタイム・写真保存）</small></header>
-  <main>
-    <div id="stage">
-      <canvas id="display" width="640" height="480"></canvas>
-      <div id="hud">
-        <div class="rec"><span class="dot" id="recdot"></span><span>REC</span></div>
-        <div class="date" id="dateText"></div>
-      </div>
-    </div>
+<h2>📼 平成カメラ</h2>
 
-    <div id="controls">
-      <div class="row">
-        <button id="shutter" class="primary">📸 撮影して保存</button>
-        <button id="swap">🔁 カメラ切替</button>
-      </div>
-      <div class="row">
-        <label>劣化レベル
-          <input id="level" type="range" min="0" max="100" value="65">
-        </label>
-        <label>解像度（内部）
-          <select id="res">
-            <option value="320x240">QVGA 320×240</option>
-            <option value="400x300">400×300</option>
-            <option value="640x480">VGA 640×480</option>
-          </select>
-        </label>
-      </div>
-      <div class="row">
-        <label>彩度↓/ガンマ↑
-          <input id="sat" type="range" min="0" max="100" value="50">
-        </label>
-        <label>ノイズ量
-          <input id="noise" type="range" min="0" max="100" value="30">
-        </label>
-      </div>
-    </div>
+<div id="stage">
+  <canvas id="canvas" width="640" height="480"></canvas>
+  <div id="hud">
+    <div class="rec"><div class="dot" id="dot"></div><span>REC</span></div>
+    <div class="date" id="date"></div>
+  </div>
+</div>
 
-    <small>ヒント：HTTPSで開くとカメラが使えます（GitHub Pages など）。iPhoneは「ホーム画面に追加」でほぼアプリ化。</small>
-  </main>
+<div>
+<select id="mode">
+  <option value="dslr">📷 一眼風</option>
+  <option value="compact">📸 コンデジ風</option>
+  <option value="8mm">📼 8ミリ風</option>
+</select>
+<label>テープノイズ:<input type="range" id="tape" min="0" max="100" value="10"></label>
+<label>🎙音声<input type="checkbox" id="mic" checked></label><br>
+<button id="photoBtn">📸 写真</button>
+<button id="recStart">🎥 録画</button>
+<button id="recStop" disabled>⏹ 停止</button>
+<a id="download" download="heisei_v2.webm">🎬 ダウンロード</a>
+</div>
 
-  <!-- 非表示のvideo & オフスクリーンバッファ -->
-  <video id="video" autoplay playsinline muted style="position:absolute; left:-9999px;"></video>
+<video id="video" autoplay playsinline muted style="display:none;"></video>
 
 <script>
-(async () => {
-  // --- DOM ---
-  const video   = document.getElementById('video');
-  const canvas  = document.getElementById('display');
-  const ctx     = canvas.getContext('2d', { willReadFrequently: true });
-  const recdot  = document.getElementById('recdot');
-  const dateTxt = document.getElementById('dateText');
+(async()=>{
+const video=document.getElementById("video");
+const canvas=document.getElementById("canvas");
+const ctx=canvas.getContext("2d",{willReadFrequently:true});
+const low=document.createElement("canvas");low.width=320;low.height=240;
+const lctx=low.getContext("2d",{willReadFrequently:true});
+let recorder,blobs=[];let mode="dslr";let stream=null;
 
-  const shutter = document.getElementById('shutter');
-  const swapBtn = document.getElementById('swap');
-  const level   = document.getElementById('level');
-  const resSel  = document.getElementById('res');
-  const satR    = document.getElementById('sat');
-  const noiseR  = document.getElementById('noise');
+// カメラ起動（音声設定切替にも使う）
+async function startCamera(){
+  if(stream){stream.getTracks().forEach(t=>t.stop());}
+  const withAudio=document.getElementById("mic").checked;
+  try{
+    stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"},audio:withAudio});
+    video.srcObject=stream;await video.play();
+  }catch(e){alert("カメラ起動失敗："+e);}
+}
+await startCamera();
+document.getElementById("mic").onchange=startCamera;
+document.getElementById("mode").onchange=e=>mode=e.target.value;
 
-  // 内部低解像度キャンバス（ここで荒らす→表示用にドット拡大）
-  let lowW = 320, lowH = 240;
-  const low = document.createElement('canvas');
-  low.width = lowW; low.height = lowH;
-  const lctx = low.getContext('2d', { willReadFrequently: true });
+function updateDate(){
+  const n=new Date();
+  document.getElementById("date").textContent=`${String(n.getFullYear()).slice(-2)}.${String(n.getMonth()+1).padStart(2,'0')}.${String(n.getDate()).padStart(2,'0')} ${String(n.getHours()).padStart(2,'0')}:${String(n.getMinutes()).padStart(2,'0')}`;
+}
 
-  // デバイス選択（背面カメラ優先）
-  let currentFacing = 'environment';
-  let currentStream = null;
+function process(img){
+  const d=img.data,w=img.width,h=img.height;
+  for(let i=0;i<d.length;i+=4){
+    let r=d[i],g=d[i+1],b=d[i+2];
+    const avg=(r+g+b)/3;
+    if(mode==="8mm"){
+      const n=(Math.random()-.5)*70;
+      r=r*0.9+avg*0.1+n;g=g*0.85+avg*0.15+n*0.8;b=b*0.8+avg*0.2+n*1.1;
+      if(((i/(4*w))|0)%2===0){r*=0.8;g*=0.8;b*=0.8;}
+    }else if(mode==="compact"){
+      const n=(Math.random()-.5)*20;
+      r=r*1.1+n;g=g*1.05+n;b=b*1.05+n;
+    }else{r=r*1.05;g=g*1.05;b=b*1.05;}
+    d[i]=r;d[i+1]=g;d[i+2]=b;
+  }
+  return img;
+}
 
-  async function startCamera() {
-    if (currentStream) {
-      currentStream.getTracks().forEach(t => t.stop());
-      currentStream = null;
+function render(){
+  if(video.readyState>=2){
+    const vw=video.videoWidth,vh=video.videoHeight;
+    const ar=vw/vh,tar=4/3;let sx=0,sy=0,sw=vw,sh=vh;
+    if(ar>tar){sw=vh*tar;sx=(vw-sw)/2;}else{sh=vw/tar;sy=(vh-sh)/2;}
+    lctx.drawImage(video,sx,sy,sw,sh,0,0,low.width,low.height);
+    let img=lctx.getImageData(0,0,low.width,low.height);
+    lctx.putImageData(process(img),0,0);
+    const shake=(mode==="8mm")?(Math.random()*2-1):0;
+    ctx.imageSmoothingEnabled=false;
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    ctx.drawImage(low,shake,shake,canvas.width,canvas.height);
+    // テープノイズ（ランダム水平ズレ）
+    const tapeVal=+document.getElementById("tape").value;
+    if(Math.random()<tapeVal/1000){
+      const y=Math.random()*canvas.height|0;
+      const h=5+Math.random()*15;
+      ctx.drawImage(canvas,0,y,canvas.width,h,Math.random()*10-5,y,canvas.width,h);
     }
-    const constraints = {
-      audio: false,
-      video: {
-        facingMode: { ideal: currentFacing },
-        width: { ideal: 1280 }, height: { ideal: 720 }
-      }
-    };
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia(constraints);
-      currentStream = stream;
-      video.srcObject = stream;
-      await video.play();
-    } catch (e) {
-      alert('カメラ取得に失敗: ' + e);
-    }
   }
+  updateDate();
+  document.getElementById("dot").style.opacity=(Date.now()/500%2>1)?1:0.3;
+  requestAnimationFrame(render);
+}
+render();
 
-  swapBtn.addEventListener('click', () => {
-    currentFacing = (currentFacing === 'environment') ? 'user' : 'environment';
-    startCamera();
-  });
+// 📸 写真
+document.getElementById("photoBtn").onclick=()=>{
+  canvas.toBlob(blob=>{
+    const a=document.createElement("a");
+    a.href=URL.createObjectURL(blob);
+    a.download=`heisei_${mode}_${Date.now()}.jpg`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  },"image/jpeg",mode==="compact"?0.6:0.9);
+};
 
-  // パラメータ更新
-  function parseRes(v) {
-    const [w,h] = v.split('x').map(n=>parseInt(n,10));
-    return {w,h};
-  }
-  function updateLowRes() {
-    const {w,h} = parseRes(resSel.value);
-    lowW = w; lowH = h;
-    low.width = lowW; low.height = lowH;
-  }
-  resSel.addEventListener('change', updateLowRes);
-
-  // エフェクト：ピクセル処理（高速め実装）
-  function heiseiProcess(imageData) {
-    const d = imageData.data;
-    const L = d.length;
-    // スライダー値
-    const lvl   = +level.value / 100; // 全体の劣化スケール
-    const satV  = +satR.value / 100;  // 彩度0..1
-    const noise = +noiseR.value / 100;
-
-    // ガンマ（少し上げると白飛び・黒潰れっぽく）
-    const gamma = 1.0 + 0.6 * lvl;
-    const invG = 1.0 / gamma;
-
-    // 走査線強度
-    const scanAmt = 0.08 + 0.12 * lvl;
-
-    // 簡易クロマブリード（G/Bを1px左に）
-    // 参照のために1行ずつ処理
-    for (let y = 0; y < imageData.height; y++) {
-      const row = y * imageData.width * 4;
-      for (let x = 0; x < imageData.width; x++) {
-        const i  = row + x*4;
-
-        // 元色
-        let r=d[i], g=d[i+1], b=d[i+2];
-
-        // 彩度低下（グレイ平均に寄せる）
-        const avg = (r+g+b)/3;
-        r = avg*(1-satV) + r*satV;
-        g = avg*(1-satV) + g*satV;
-        b = avg*(1-satV) + b*satV;
-
-        // ガンマ補正（近似：pow）
-        r = Math.pow(r/255, invG)*255;
-        g = Math.pow(g/255, invG)*255;
-        b = Math.pow(b/255, invG)*255;
-
-        // ノイズ（輝度 + 色少し）
-        const n = (Math.random()-0.5) * 60 * noise; // -30..+30 (noise=0.5で±15)
-        r = r + n;
-        g = g + n * 0.9;
-        b = b + n * 1.1;
-
-        d[i]=r; d[i+1]=g; d[i+2]=b;
-      }
-      // 走査線（偶数ライン暗く）
-      if ((y & 1) === 0) {
-        for (let x = 0; x < imageData.width; x++) {
-          const k = row + x*4;
-          d[k]   *= (1.0 - scanAmt);
-          d[k+1] *= (1.0 - scanAmt);
-          d[k+2] *= (1.0 - scanAmt);
-        }
-      }
-      // クロマブリード（G/Bを左1pxから拝借）
-      for (let x = imageData.width-1; x >= 1; x--) {
-        const i  = row + x*4;
-        const il = row + (x-1)*4;
-        d[i+1] = d[il+1]; // G
-        d[i+2] = d[il+2]; // B
-      }
-    }
-
-    // 下端ヘッド切替ノイズ帯
-    const band = Math.max(2, (imageData.height*0.04)|0);
-    for (let y = imageData.height - band; y < imageData.height; y++) {
-      const f = (y - (imageData.height - band)) / band; // 0..1
-      const boost = (0.35 + 0.35 * Math.random()) * (1.0 - f);
-      const row = y * imageData.width * 4;
-      for (let x = 0; x < imageData.width; x++) {
-        const i = row + x*4;
-        d[i]   = Math.min(255, d[i]   + 255*boost);
-        d[i+1] = Math.min(255, d[i+1] + 255*boost);
-        d[i+2] = Math.min(255, d[i+2] + 255*boost);
-      }
-    }
-    return imageData;
-  }
-
-  // HUD 日付
-  function updateDate() {
-    const now = new Date();
-    const y = String(now.getFullYear()).slice(-2);
-    const M = String(now.getMonth()+1).padStart(2,'0');
-    const D = String(now.getDate()).padStart(2,'0');
-    const h = String(now.getHours()).padStart(2,'0');
-    const m = String(now.getMinutes()).padStart(2,'0');
-    dateTxt.textContent = `${y}.${M}.${D}  ${h}:${m}`;
-  }
-
-  // メイン描画ループ：video → low(低解像) → pixel処理 → display(拡大)
-  function render() {
-    if (video.readyState >= 2) {
-      // videoを4:3でトリミングしてlowへ最近傍描画
-      const vw = video.videoWidth, vh = video.videoHeight;
-      if (vw && vh) {
-        const targetAR = 4/3;
-        let sx=0, sy=0, sw=vw, sh=vh;
-        const ar = vw/vh;
-        if (ar > targetAR) { // 横長→左右カット
-          sw = Math.floor(vh * targetAR);
-          sx = Math.floor((vw - sw)/2);
-        } else {             // 縦長→上下カット
-          sh = Math.floor(vw / targetAR);
-          sy = Math.floor((vh - sh)/2);
-        }
-        // ドット荒れのため filter=false 等価 → drawImage で縮小
-        lctx.imageSmoothingEnabled = false;
-        lctx.drawImage(video, sx, sy, sw, sh, 0, 0, lowW, lowH);
-
-        // ピクセル処理
-        let img = lctx.getImageData(0,0,lowW,lowH);
-        img = heiseiProcess(img);
-        lctx.putImageData(img, 0, 0);
-
-        // 表示キャンバスへドット等倍拡大
-        ctx.imageSmoothingEnabled = false;
-        ctx.clearRect(0,0,canvas.width, canvas.height);
-        ctx.drawImage(low, 0, 0, canvas.width, canvas.height);
-      }
-    }
-    updateDate();
-    // REC点滅
-    recdot.style.opacity = (Math.floor(performance.now()/500)%2) ? '1' : '0.25';
-    requestAnimationFrame(render);
-  }
-
-  // 撮影→JPEG保存
-  shutter.addEventListener('click', () => {
-    // 現在のdisplayキャンバスをそのまま保存
-    canvas.toBlob((blob)=>{
-      const a = document.createElement('a');
-      const url = URL.createObjectURL(blob);
-      a.href = url;
-      const ts = new Date().toISOString().replace(/[:.]/g,'-');
-      a.download = `heisei_${ts}.jpg`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      setTimeout(()=>URL.revokeObjectURL(url), 1000);
-    }, 'image/jpeg', 0.75); // ちょい荒いjpeg圧縮
-  });
-
-  // 初期セットアップ
-  updateLowRes();
-  await startCamera();
-  render();
-
-  // 画面回転やリサイズ時、表示キャンバスは固定ピクセルのままCSSで伸縮（ドット保持）
-  // 必要ならここで canvas.width/height を変えるとスクショ解像度も変えられます。
+// 🎥 録画
+document.getElementById("recStart").onclick=()=>{
+  blobs=[];
+  const fps=(mode==="8mm"?12:24);
+  const canvasStream=canvas.captureStream(fps);
+  // 音声ミックス
+  const audioTrack=stream.getAudioTracks()[0];
+  if(audioTrack)canvasStream.addTrack(audioTrack);
+  recorder=new MediaRecorder(canvasStream,{mimeType:"video/webm"});
+  recorder.ondataavailable=e=>{if(e.data.size>0)blobs.push(e.data);};
+  recorder.onstop=()=>{
+    const blob=new Blob(blobs,{type:"video/webm"});
+    const url=URL.createObjectURL(blob);
+    const a=document.getElementById("download");
+    a.href=url;a.style.display="inline";
+    a.textContent=`🎬 ダウンロード (${(blob.size/1024/1024).toFixed(1)}MB)`;
+  };
+  recorder.start(100);
+  recStart.disabled=true;recStop.disabled=false;
+};
+document.getElementById("recStop").onclick=()=>{
+  recorder.stop();recStart.disabled=false;recStop.disabled=true;
+};
 })();
 </script>
 </body>
