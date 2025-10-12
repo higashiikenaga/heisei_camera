@@ -3,24 +3,54 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>📼 平成カメラ</title>
+<title>平成カメラ</title>
+
+<!-- 💾 Google Fonts: 液晶風フォント -->
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Press+Start+2P&display=swap" rel="stylesheet">
+
 <style>
-body{margin:0;padding:1rem;background:#111;color:#eee;font-family:sans-serif;text-align:center;}
-h2{margin-bottom:.5rem;}
-#stage{position:relative;width:min(90vw,480px);aspect-ratio:4/3;margin:auto;background:#000;border:2px solid #333;overflow:hidden;}
-canvas{width:100%;height:100%;image-rendering:pixelated;image-rendering:crisp-edges;}
-#hud{position:absolute;inset:0;pointer-events:none;font-family:monospace;color:#f66;}
+body{
+  margin:0;padding:1rem;background:#111;color:#eee;
+  font-family:'Orbitron', monospace;
+  text-align:center;letter-spacing:0.5px;
+}
+h2{
+  margin-bottom:.5rem;
+  font-family:'Orbitron', monospace;
+  font-size:1.4rem;
+  color:#8ff;
+  text-shadow:0 0 8px #0ff;
+}
+#stage{
+  position:relative;width:min(90vw,480px);aspect-ratio:4/3;
+  margin:auto;background:#000;border:2px solid #333;overflow:hidden;
+}
+canvas{
+  width:100%;height:100%;
+  image-rendering:pixelated;image-rendering:crisp-edges;
+}
+#hud{
+  position:absolute;inset:0;pointer-events:none;
+  font-family:'Press Start 2P', monospace; /* 📺 CRT風フォント */
+  font-size:10px;line-height:1.3;
+  color:#f66;text-shadow:0 0 4px #000;
+}
 .rec{position:absolute;top:10px;left:10px;display:flex;align-items:center;gap:6px;}
 .dot{width:10px;height:10px;border-radius:50%;background:red;box-shadow:0 0 6px #f00;}
 .date{position:absolute;bottom:10px;right:10px;color:#ffa64d;text-shadow:0 1px 2px #000;}
-.timecode{position:absolute;bottom:10px;left:10px;color:#f44;font-size:14px;text-shadow:0 0 4px #000;}
-button,select,input{margin:5px;padding:8px;border:none;border-radius:8px;background:#1d1d1d;color:#eee;font-weight:600;}
+.timecode{position:absolute;bottom:10px;left:10px;color:#f44;font-size:12px;text-shadow:0 0 4px #000;}
+button,select,input{
+  margin:5px;padding:8px;border:none;border-radius:8px;
+  background:#1d1d1d;color:#eee;font-weight:600;
+  font-family:'Orbitron', monospace;
+}
 #download{display:none;margin-top:10px;}
 label{font-size:0.9em;}
 </style>
 </head>
+
 <body>
-<h2>📼 平成カメラ</h2>
+<h2>📷 平成カメラ</h2>
 
 <div id="stage">
   <canvas id="canvas" width="640" height="480"></canvas>
