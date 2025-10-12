@@ -77,19 +77,29 @@ function process(img){
   for(let i=0;i<d.length;i+=4){
     let r=d[i],g=d[i+1],b=d[i+2];
     const avg=(r+g+b)/3;
+
     if(mode==="8mm"){
-      const n=(Math.random()-.5)*70;
-      r=r*0.9+avg*0.1+n;g=g*0.85+avg*0.15+n*0.8;b=b*0.8+avg*0.2+n*1.1;
-      if(((i/(4*w))|0)%2===0){r*=0.8;g*=0.8;b*=0.8;}
+      // 🎞️ 軽めの粒ノイズ
+      const n=(Math.random()-.5)*35;
+      r=r*0.93+avg*0.07+n;
+      g=g*0.89+avg*0.11+n*0.7;
+      b=b*0.86+avg*0.14+n*1.0;
+
+      // 📺 柔らかい走査線（3行おき）
+      if(((i/(4*w))|0)%3===0){r*=0.9;g*=0.9;b*=0.9;}
+
     }else if(mode==="compact"){
-      const n=(Math.random()-.5)*20;
-      r=r*1.1+n;g=g*1.05+n;b=b*1.05+n;
-    }else{r=r*1.05;g=g*1.05;b=b*1.05;}
-    d[i]=r;d[i+1]=g;d[i+2]=b;
+      const n=(Math.random()-.5)*15;
+      r=r*1.1+n; g=g*1.05+n; b=b*1.05+n;
+    }else{
+      r=r*1.05; g=g*1.05; b=b*1.05;
+    }
+    d[i]=r; d[i+1]=g; d[i+2]=b;
   }
   return img;
 }
 
+// ---- render() の中の描画部を書き換え ----
 function render(){
   if(video.readyState>=2){
     const vw=video.videoWidth,vh=video.videoHeight;
@@ -98,11 +108,35 @@ function render(){
     lctx.drawImage(video,sx,sy,sw,sh,0,0,low.width,low.height);
     let img=lctx.getImageData(0,0,low.width,low.height);
     lctx.putImageData(process(img),0,0);
+
+    // ---- 🌞 露出ゆらぎ ----
+    let exp=1.0;
+    if(mode==="8mm"){
+      exp = 0.95 + Math.random()*0.1; // ±5%
+      ctx.filter = `brightness(${exp}) contrast(1.05)`;
+    } else {
+      ctx.filter = "none";
+    }
+
+    // ---- 📼 光漏れ演出 ----
+    if(mode==="8mm" && Math.random()<0.02){ // 約2%の確率で
+      const grad=ctx.createRadialGradient(
+        Math.random()*canvas.width, Math.random()*canvas.height,
+        50, canvas.width/2, canvas.height/2, canvas.width
+      );
+      grad.addColorStop(0,"rgba(255,200,150,0.4)");
+      grad.addColorStop(1,"rgba(255,150,100,0)");
+      ctx.fillStyle=grad;
+      ctx.fillRect(0,0,canvas.width,canvas.height);
+    }
+
+    // ---- 通常描画（手ブレあり） ----
     const shake=(mode==="8mm")?(Math.random()*2-1):0;
     ctx.imageSmoothingEnabled=false;
     ctx.clearRect(0,0,canvas.width,canvas.height);
     ctx.drawImage(low,shake,shake,canvas.width,canvas.height);
-    // テープノイズ（ランダム水平ズレ）
+
+    // ---- テープノイズ ----
     const tapeVal=+document.getElementById("tape").value;
     if(Math.random()<tapeVal/1000){
       const y=Math.random()*canvas.height|0;
@@ -110,10 +144,12 @@ function render(){
       ctx.drawImage(canvas,0,y,canvas.width,h,Math.random()*10-5,y,canvas.width,h);
     }
   }
+
   updateDate();
   document.getElementById("dot").style.opacity=(Date.now()/500%2>1)?1:0.3;
   requestAnimationFrame(render);
 }
+
 render();
 
 // 📸 写真
