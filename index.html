@@ -5,21 +5,19 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>平成カメラ</title>
 
-<!-- 💾 Google Fonts: 液晶風フォント -->
+<!-- 液晶・VHS風フォント -->
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Press+Start+2P&display=swap" rel="stylesheet">
 
 <style>
 body{
   margin:0;padding:1rem;background:#111;color:#eee;
-  font-family:'Orbitron', monospace;
-  text-align:center;letter-spacing:0.5px;
+  font-family:'Orbitron', monospace;text-align:center;letter-spacing:0.5px;
 }
 h2{
   margin-bottom:.5rem;
   font-family:'Orbitron', monospace;
   font-size:1.4rem;
-  color:#8ff;
-  text-shadow:0 0 8px #0ff;
+  color:#8ff;text-shadow:0 0 8px #0ff;
 }
 #stage{
   position:relative;width:min(90vw,480px);aspect-ratio:4/3;
@@ -31,9 +29,8 @@ canvas{
 }
 #hud{
   position:absolute;inset:0;pointer-events:none;
-  font-family:'Press Start 2P', monospace; /* 📺 CRT風フォント */
-  font-size:10px;line-height:1.3;
-  color:#f66;text-shadow:0 0 4px #000;
+  font-family:'Press Start 2P', monospace;
+  font-size:10px;line-height:1.3;color:#f66;text-shadow:0 0 4px #000;
 }
 .rec{position:absolute;top:10px;left:10px;display:flex;align-items:center;gap:6px;}
 .dot{width:10px;height:10px;border-radius:50%;background:red;box-shadow:0 0 6px #f00;}
@@ -73,10 +70,10 @@ label{font-size:0.9em;}
 <button id="photoBtn">📸 写真</button>
 <button id="recStart">🎥 録画</button>
 <button id="recStop" disabled>⏹ 停止</button>
-<a id="download" download="heisei_v3.webm">🎬 ダウンロード</a>
+<a id="download" download="heisei_camera.webm">🎬 ダウンロード</a>
 </div>
 
-<video id="video" autoplay playsinline muted style="display:none;"></video>
+<video id="video" autoplay playsinline style="display:none;"></video>
 
 <script>
 (async()=>{
@@ -85,22 +82,29 @@ const canvas=document.getElementById("canvas");
 const ctx=canvas.getContext("2d",{willReadFrequently:true});
 const low=document.createElement("canvas");low.width=320;low.height=240;
 const lctx=low.getContext("2d",{willReadFrequently:true});
-let recorder,blobs=[];let mode="dslr";let stream=null;let recTime=0;
+let recorder,blobs=[],stream=null,mode="dslr",recTime=0;
 
 // ====== カメラ起動 ======
 async function startCamera(){
   if(stream){stream.getTracks().forEach(t=>t.stop());}
   const withAudio=document.getElementById("mic").checked;
   try{
-    stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"},audio:withAudio});
-    video.srcObject=stream;await video.play();
-  }catch(e){alert("カメラ起動失敗："+e);}
+    stream=await navigator.mediaDevices.getUserMedia({
+      video:{facingMode:"environment"},
+      audio:withAudio ? {echoCancellation:true,noiseSuppression:true} : false
+    });
+    video.srcObject=stream;
+    await video.play();
+    console.log("🎙 Camera started, audio:", withAudio);
+  }catch(e){
+    alert("カメラまたはマイク起動失敗："+e);
+  }
 }
 await startCamera();
 document.getElementById("mic").onchange=startCamera;
 document.getElementById("mode").onchange=e=>mode=e.target.value;
 
-// ====== 日付・タイムコード ======
+// ====== HUD更新 ======
 function updateHUD(){
   const n=new Date();
   document.getElementById("date").textContent=
@@ -111,12 +115,10 @@ function updateHUD(){
     const m=String((sec%3600)/60|0).padStart(2,'0');
     const s=String(sec%60).padStart(2,'0');
     document.getElementById("timecode").textContent=`${h}:${m}:${s}`;
-  }else{
-    document.getElementById("timecode").textContent="00:00:00";
-  }
+  }else document.getElementById("timecode").textContent="00:00:00";
 }
 
-// ====== 画質劣化（モード別） ======
+// ====== 劣化処理 ======
 function process(img){
   const d=img.data,w=img.width,h=img.height;
   for(let i=0;i<d.length;i+=4){
@@ -135,10 +137,8 @@ function process(img){
     }else if(mode==="vhs"){
       const n=(Math.random()-.5)*50;
       r+=n;g+=n;b+=n;
-      // 色ズレ（RGBオフセット）
-      if(((i/(4*w))|0)%2===0){b=b*0.9;g=g*1.1;}
+      if(((i/(4*w))|0)%2===0){b*=0.9;g*=1.1;} // 色ズレ
     }else{
-      // 一眼は鮮明＆高コントラスト
       r*=1.08;g*=1.08;b*=1.1;
     }
     d[i]=r;d[i+1]=g;d[i+2]=b;
@@ -156,14 +156,14 @@ function render(){
     let img=lctx.getImageData(0,0,low.width,low.height);
     lctx.putImageData(process(img),0,0);
 
-    // ====== モードごとのfilter ======
+    // ====== モード別フィルタ ======
     if(mode==="dslr") ctx.filter="contrast(1.2) brightness(1.1)";
     else if(mode==="compact") ctx.filter="contrast(1.1) saturate(1.2)";
     else if(mode==="8mm") ctx.filter="blur(0.4px) brightness(1.05) contrast(1.05)";
     else if(mode==="vhs") ctx.filter="contrast(0.95) saturate(0.9) brightness(1.02)";
     else ctx.filter="none";
 
-    // ====== 8mm：露出ゆらぎ＋光漏れ ======
+    // ====== 8mm特有の露出ゆらぎ＋光漏れ ======
     if(mode==="8mm"){
       const exp=0.96+Math.random()*0.08;
       ctx.filter+=` brightness(${exp})`;
@@ -179,20 +179,18 @@ function render(){
       }
     }
 
-    // ====== VHS再生ゆらぎ ======
+    // ====== VHS再生風ゆらぎ ======
     if(mode==="vhs"){
       const time=Date.now()/1000;
       const offset=Math.sin(time*6)*2;
       ctx.translate(offset,0);
     }
 
-    // ====== 通常描画 ======
     const shake=(mode==="8mm")?(Math.random()*2-1):0;
     ctx.imageSmoothingEnabled=false;
     ctx.clearRect(0,0,canvas.width,canvas.height);
     ctx.drawImage(low,shake,shake,canvas.width,canvas.height);
 
-    // ====== VHSノイズ帯 ======
     if(mode==="vhs"){
       ctx.setTransform(1,0,0,1,0,0);
       const barHeight=8;
@@ -232,15 +230,17 @@ document.getElementById("photoBtn").onclick=()=>{
   },"image/jpeg",mode==="compact"?0.6:0.9);
 };
 
-// ====== 録画 ======
-document.getElementById("recStart").onclick=()=>{
+// ====== 録画（音声付き） ======
+document.getElementById("recStart").onclick=async ()=>{
   blobs=[];
   recTime=Date.now();
   const fps=(mode==="8mm"?12:(mode==="vhs"?15:24));
+
   const canvasStream=canvas.captureStream(fps);
   const audioTrack=stream.getAudioTracks()[0];
-  if(audioTrack)canvasStream.addTrack(audioTrack);
-  recorder=new MediaRecorder(canvasStream,{mimeType:"video/webm"});
+  if(audioTrack) canvasStream.addTrack(audioTrack);
+
+  recorder=new MediaRecorder(canvasStream,{mimeType:"video/webm;codecs=vp8,opus"});
   recorder.ondataavailable=e=>{if(e.data.size>0)blobs.push(e.data);};
   recorder.onstop=()=>{
     recTime=0;
@@ -250,11 +250,15 @@ document.getElementById("recStart").onclick=()=>{
     a.href=url;a.style.display="inline";
     a.textContent=`🎬 ダウンロード (${(blob.size/1024/1024).toFixed(1)}MB)`;
   };
+
   recorder.start(100);
-  recStart.disabled=true;recStop.disabled=false;
+  recStart.disabled=true;
+  recStop.disabled=false;
 };
 document.getElementById("recStop").onclick=()=>{
-  recorder.stop();recStart.disabled=false;recStop.disabled=true;
+  recorder.stop();
+  recStart.disabled=false;
+  recStop.disabled=true;
 };
 })();
 </script>
