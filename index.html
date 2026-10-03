@@ -4,9 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#000000">
-<title>平成カメラ | ガラケー・デジカメ・VHS風のレトロカメラ(CCD/CMOS/miniDV再現)</title>
-<meta name="description" content="平成カメラは、ガラケー・コンデジ・ビデオカメラ風UIで、CCD・CMOSセンサーやminiDV・VHS・8ミリの質感を再現するブラウザ向けレトロカメラ。シャッター音や日付写し込み、テープ風ノイズ録音にも対応。インストール不要、無料。">
-<meta name="keywords" content="平成カメラ,レトロカメラ,ガラケー,デジカメ,CCD,CMOS,miniDV,VHS,8ミリ,エモい,写ルンです風,平成レトロ,Y2K">
+<title>平成カメラ | ガラケー・デジカメ・ビデオテープ風のレトロカメラ(CCD/CMOS再現)</title>
+<meta name="description" content="平成カメラは、ガラケー・コンデジ・ビデオカメラ風UIで、CCD・CMOSセンサーやデジタルテープ・アナログテープ・8ミリフィルムの質感を再現するブラウザ向けレトロカメラ。シャッター音や日付写し込み、テープ風ノイズ録音にも対応。インストール不要、無料。">
+<meta name="keywords" content="平成カメラ,レトロカメラ,ガラケー,デジカメ,CCD,CMOS,ビデオテープ,8ミリ,エモい,平成レトロ,Y2K">
 <meta name="author" content="higashiikenaga">
 <meta name="robots" content="index,follow,max-image-preview:large">
 <link rel="canonical" href="https://higashiikenaga.github.io/heisei_camera/">
@@ -24,8 +24,8 @@
 <!-- OGP -->
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="平成カメラ">
-<meta property="og:title" content="平成カメラ | ガラケー・デジカメ・VHS風のレトロカメラ">
-<meta property="og:description" content="CCD・CMOS・miniDV・VHS・8ミリの質感を再現。ガラケー/デジカメ/ビデオカメラ風UIで撮れるブラウザ向けレトロカメラ。">
+<meta property="og:title" content="平成カメラ | ガラケー・デジカメ・ビデオテープ風のレトロカメラ">
+<meta property="og:description" content="CCD・CMOS・デジタルテープ・アナログテープ・8ミリフィルムの質感を再現。ガラケー/デジカメ/ビデオカメラ風UIで撮れるブラウザ向けレトロカメラ。">
 <meta property="og:url" content="https://higashiikenaga.github.io/heisei_camera/">
 <meta property="og:image" content="https://higashiikenaga.github.io/heisei_camera/og-image.png">
 <meta property="og:image:width" content="1200">
@@ -33,12 +33,12 @@
 <meta property="og:image:alt" content="平成カメラ ロゴとキャッチコピー">
 <meta property="og:locale" content="ja_JP">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="平成カメラ | ガラケー・デジカメ・VHS風のレトロカメラ">
-<meta name="twitter:description" content="CCD・CMOS・miniDV・VHS・8ミリの質感を再現するブラウザ向けレトロカメラ。">
+<meta name="twitter:title" content="平成カメラ | ガラケー・デジカメ・ビデオテープ風のレトロカメラ">
+<meta name="twitter:description" content="CCD・CMOS・テープ・8ミリフィルムの質感を再現するブラウザ向けレトロカメラ。">
 <meta name="twitter:image" content="https://higashiikenaga.github.io/heisei_camera/og-image.png">
 
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"WebApplication","name":"平成カメラ","url":"https://higashiikenaga.github.io/heisei_camera/","description":"ガラケー・デジカメ・ビデオカメラ風UIでCCD/CMOS/miniDV/VHSの質感を再現するブラウザ向けレトロカメラ","applicationCategory":"MultimediaApplication","operatingSystem":"Any (Web browser)","inLanguage":"ja","image":"https://higashiikenaga.github.io/heisei_camera/og-image.png","offers":{"@type":"Offer","price":"0","priceCurrency":"JPY"},"author":{"@type":"Person","name":"higashiikenaga","url":"https://github.com/higashiikenaga"}}
+{"@context":"https://schema.org","@type":"WebApplication","name":"平成カメラ","url":"https://higashiikenaga.github.io/heisei_camera/","description":"ガラケー・デジカメ・ビデオカメラ風UIでCCD/CMOS/テープ/8ミリの質感を再現するブラウザ向けレトロカメラ","applicationCategory":"MultimediaApplication","operatingSystem":"Any (Web browser)","inLanguage":"ja","image":"https://higashiikenaga.github.io/heisei_camera/og-image.png","offers":{"@type":"Offer","price":"0","priceCurrency":"JPY"},"author":{"@type":"Person","name":"higashiikenaga","url":"https://github.com/higashiikenaga"}}
 </script>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Press+Start+2P&display=swap" rel="stylesheet">
 
@@ -297,8 +297,8 @@ body.recording #dpad #shutterG{background:var(--rec);}
       <optgroup label="デジカメ・ビデオカメラ風">
         <option value="c1">デジカメ シルバー</option>
         <option value="c2">デジカメ ブラック</option>
-        <option value="v1">ビデオカメラ miniDV</option>
-        <option value="v2">ビデオカメラ VHS-C</option>
+        <option value="v1">ビデオカメラ デジタルテープ</option>
+        <option value="v2">ビデオカメラ アナログテープ</option>
       </optgroup>
     </select></div>
   <div class="set"><span>ノイズ・劣化量</span><input type="range" id="tape" min="0" max="100" value="45"></div>
@@ -331,9 +331,9 @@ const low=document.createElement("canvas"),lctx=low.getContext("2d",{willReadFre
 const LOOKS={
   ccd:{name:"CCD",label:"CCD コンデジ(2002)",fps:24},
   cmos:{name:"CMOS",label:"CMOS ケータイ(2008)",fps:24},
-  "8mm":{name:"8mm",label:"8ミリビデオ",fps:12},
-  vhs:{name:"VHS",label:"VHS ホームビデオ",fps:15},
-  dv:{name:"miniDV",label:"miniDV ハンディカム",fps:30,hiss:.35}
+  "8mm":{name:"8ミリ風",label:"8ミリフィルム風",fps:12},
+  vhs:{name:"アナログテープ",label:"アナログテープ(ホームビデオ風)",fps:15},
+  dv:{name:"デジタルテープ",label:"デジタルテープ(ハンディ型風)",fps:30,hiss:.35}
 };
 LOOKS.ccd.hiss=.5;LOOKS.cmos.hiss=.4;LOOKS["8mm"].hiss=1.2;LOOKS.vhs.hiss=1;
 let look="ccd",kind="photo",facing="environment",zoom=1,recording=false;
@@ -432,7 +432,7 @@ let prevCol=null,smear=null,skew=0,vigTab=null;
 window.addEventListener("resize",fitCanvas);
 if(window.ResizeObserver)new ResizeObserver(()=>fitCanvas()).observe($("vf"));
 
-/* ================= miniDV : WebGL シェーダー ================= */
+/* ================= デジタルテープ風 : WebGL シェーダー ================= */
 // 4:2:0 クロマサブサンプリング(2x2で色を共有)＋横方向の色にじみ＋DCTブロック風の量子化、
 // さらに数フレームだけ発生するデジタルバグ(マクロブロック欠落/固着/色ズレ)。
 const DV_VS=`attribute vec2 p;varying vec2 v;void main(){v=p*.5+.5;gl_Position=vec4(p,0.,1.);}`;
@@ -831,8 +831,8 @@ const SKINS={
   g3:{k:"g",look:"cmos",brand:"✦ HEISEI ✦ pretty cam"},
   c1:{k:"c",look:"ccd",brand:"HEISEI DIGITAL  3.2 MEGA PIXELS"},
   c2:{k:"c",look:"ccd",brand:"HEISEI ZOOM 10x  5.0MP"},
-  v1:{k:"v",look:"dv",brand:"HEISEI miniDV  DIGITAL VIDEO"},
-  v2:{k:"v",look:"vhs",brand:"HEISEI VHS-C  CAMCORDER"}
+  v1:{k:"v",look:"dv",brand:"HEISEI DIGITAL TAPE CAM"},
+  v2:{k:"v",look:"vhs",brand:"HEISEI ANALOG TAPE CAM"}
 };
 let skin="g1";
 const looksEl=$("looks");
@@ -938,20 +938,21 @@ function openPreview(){
 $("pvClose").onclick=()=>{$("preview").classList.remove("open");$("pvBody").innerHTML="";};
 
 /* ================= 情報・更新履歴 ================= */
-const APP_VERSION="3.0.1";
+const APP_VERSION="3.0.2";
 const CONTACT={
   github:"https://github.com/higashiikenaga/heisei_camera",
   githubLabel:"github.com/higashiikenaga/heisei_camera",
   email:"sanyokai05@gmail.com"
 };
 const HISTORY=[
+  ["3.0.2","2026-10-03","特定の規格・商標に近い名称を「デジタルテープ」「アナログテープ」などの一般的な呼び名に変更"],
   ["3.0.1","2026-10-03","OGP・SEO設定、ファビコン、PWAマニフェストを追加(SNSでリンクを共有したときのプレビュー画像に対応)"],
-  ["3.0.0","2026-10-03","よく考えたら平成カメラなのに令和の最新スマートフォン風デザインはおかしいので、デザインを刷新。ガラケー風(ブラック折りたたみ/シルバー/ピンク)3種と、デジカメ(シルバー/ブラック)・ビデオカメラ(miniDV/VHS-C)風4種の計7種から選べるように(設定→デザイン)。十字キー・テンキーでの操作、PCのキーボード操作にも対応"],
+  ["3.0.0","2026-10-03","よく考えたら平成カメラなのに令和の最新スマートフォン風デザインはおかしいので、デザインを刷新。ガラケー風(ブラック折りたたみ/シルバー/ピンク)3種と、デジカメ(シルバー/ブラック)・ビデオカメラ(デジタルテープ/アナログテープ)風4種の計7種から選べるように(設定→デザイン)。十字キー・テンキーでの操作、PCのキーボード操作にも対応"],
   ["2.3.0","2026-10-03","「全画面」比率を追加し、縦長スマホ(自動選択)やPCの横長画面にぴったり合うように。PCではウィンドウいっぱいに表示。更新履歴に日付を追加"],
   ["2.2.0","2026-10-03","撮影比率(16:9 / 4:3 / 1:1)を選べるように。カメラ映像をほぼ全画面で表示するUIに刷新。作者メールアドレスを追加"],
-  ["2.1.0","2026-10-03","miniDVルック(WebGLシェーダーによる4:2:0風の色にじみ)、数フレームだけ出るデジタルバグ(ブロックノイズ)、録音へのテープ風ホワイトノイズ合成を追加"],
+  ["2.1.0","2026-10-03","デジタルテープ風ルック(WebGLシェーダーによる4:2:0風の色にじみ)、数フレームだけ出るデジタルバグ(ブロックノイズ)、録音へのテープ風ホワイトノイズ合成を追加"],
   ["2.0.0","2026-10-03","UIをモバイルカメラ風に刷新。CCD/CMOSセンサーの質感(スミア・ローリングシャッター等)を再現。シャッター音と録画開始/停止の「ピッ」音を追加"],
-  ["1.0.0","2025-10-12","初版公開(一眼風・コンデジ風・8ミリ風・VHS風、写真撮影と録画)"]
+  ["1.0.0","2025-10-12","初版公開(一眼風・コンデジ風・8ミリ風・アナログテープ風、写真撮影と録画)"]
 ];
 $("aboutVer").textContent="Version "+APP_VERSION;
 $("aboutLog").innerHTML=HISTORY.map(h=>`<li><b>v${h[0]} <small style="color:#999;font-weight:400">${h[1]}</small></b><span>${h[2]}</span></li>`).join("");
