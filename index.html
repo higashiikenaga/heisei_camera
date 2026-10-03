@@ -4,7 +4,42 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#000000">
-<title>平成カメラ</title>
+<title>平成カメラ | ガラケー・デジカメ・VHS風のレトロカメラ(CCD/CMOS/miniDV再現)</title>
+<meta name="description" content="平成カメラは、ガラケー・コンデジ・ビデオカメラ風UIで、CCD・CMOSセンサーやminiDV・VHS・8ミリの質感を再現するブラウザ向けレトロカメラ。シャッター音や日付写し込み、テープ風ノイズ録音にも対応。インストール不要、無料。">
+<meta name="keywords" content="平成カメラ,レトロカメラ,ガラケー,デジカメ,CCD,CMOS,miniDV,VHS,8ミリ,エモい,写ルンです風,平成レトロ,Y2K">
+<meta name="author" content="higashiikenaga">
+<meta name="robots" content="index,follow,max-image-preview:large">
+<link rel="canonical" href="https://higashiikenaga.github.io/heisei_camera/">
+<meta name="application-name" content="平成カメラ">
+<meta name="apple-mobile-web-app-title" content="平成カメラ">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+
+<!-- favicon -->
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="icon" href="favicon-32.png" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+
+<!-- OGP -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="平成カメラ">
+<meta property="og:title" content="平成カメラ | ガラケー・デジカメ・VHS風のレトロカメラ">
+<meta property="og:description" content="CCD・CMOS・miniDV・VHS・8ミリの質感を再現。ガラケー/デジカメ/ビデオカメラ風UIで撮れるブラウザ向けレトロカメラ。">
+<meta property="og:url" content="https://higashiikenaga.github.io/heisei_camera/">
+<meta property="og:image" content="https://higashiikenaga.github.io/heisei_camera/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="平成カメラ ロゴとキャッチコピー">
+<meta property="og:locale" content="ja_JP">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="平成カメラ | ガラケー・デジカメ・VHS風のレトロカメラ">
+<meta name="twitter:description" content="CCD・CMOS・miniDV・VHS・8ミリの質感を再現するブラウザ向けレトロカメラ。">
+<meta name="twitter:image" content="https://higashiikenaga.github.io/heisei_camera/og-image.png">
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"平成カメラ","url":"https://higashiikenaga.github.io/heisei_camera/","description":"ガラケー・デジカメ・ビデオカメラ風UIでCCD/CMOS/miniDV/VHSの質感を再現するブラウザ向けレトロカメラ","applicationCategory":"MultimediaApplication","operatingSystem":"Any (Web browser)","inLanguage":"ja","image":"https://higashiikenaga.github.io/heisei_camera/og-image.png","offers":{"@type":"Offer","price":"0","priceCurrency":"JPY"},"author":{"@type":"Person","name":"higashiikenaga","url":"https://github.com/higashiikenaga"}}
+</script>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Press+Start+2P&display=swap" rel="stylesheet">
 
 <style>
@@ -284,6 +319,7 @@ body.recording #dpad #shutterG{background:var(--rec);}
 <div id="preview"><div id="pvBody"></div><div class="btns"><a id="pvSave" download>保存</a><button id="pvClose">閉じる</button></div></div>
 <div id="toast"></div>
 
+<noscript><p style="position:fixed;inset:0;background:#000;color:#fff;padding:2em;z-index:99">平成カメラはJavaScriptとカメラへのアクセスが必要です。ブラウザの設定で有効にしてください。</p></noscript>
 <video id="video" autoplay playsinline muted style="display:none;"></video>
 
 <script>
@@ -902,13 +938,14 @@ function openPreview(){
 $("pvClose").onclick=()=>{$("preview").classList.remove("open");$("pvBody").innerHTML="";};
 
 /* ================= 情報・更新履歴 ================= */
-const APP_VERSION="3.0.0";
+const APP_VERSION="3.0.1";
 const CONTACT={
   github:"https://github.com/higashiikenaga/heisei_camera",
   githubLabel:"github.com/higashiikenaga/heisei_camera",
   email:"sanyokai05@gmail.com"
 };
 const HISTORY=[
+  ["3.0.1","2026-10-03","OGP・SEO設定、ファビコン、PWAマニフェストを追加(SNSでリンクを共有したときのプレビュー画像に対応)"],
   ["3.0.0","2026-10-03","よく考えたら平成カメラなのに令和の最新スマートフォン風デザインはおかしいので、デザインを刷新。ガラケー風(ブラック折りたたみ/シルバー/ピンク)3種と、デジカメ(シルバー/ブラック)・ビデオカメラ(miniDV/VHS-C)風4種の計7種から選べるように(設定→デザイン)。十字キー・テンキーでの操作、PCのキーボード操作にも対応"],
   ["2.3.0","2026-10-03","「全画面」比率を追加し、縦長スマホ(自動選択)やPCの横長画面にぴったり合うように。PCではウィンドウいっぱいに表示。更新履歴に日付を追加"],
   ["2.2.0","2026-10-03","撮影比率(16:9 / 4:3 / 1:1)を選べるように。カメラ映像をほぼ全画面で表示するUIに刷新。作者メールアドレスを追加"],
