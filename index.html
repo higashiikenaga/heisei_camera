@@ -85,6 +85,18 @@ body.recording #shutter::after{inset:20px;border-radius:8px;background:var(--rec
 .set{display:flex;align-items:center;justify-content:space-between;font-size:14px;padding:9px 0;border-top:1px solid #fff2;gap:12px;}
 .set input[type=range]{flex:1;max-width:160px;accent-color:var(--acc);}
 .set input[type=checkbox]{width:44px;height:26px;accent-color:var(--acc);}
+#aboutBtn{margin:12px 0 0;width:100%;padding:10px;border:0;border-radius:12px;background:#3a3a3c;color:#fff;font-weight:700;font-size:14px;cursor:pointer;}
+#about{position:absolute;inset:0;z-index:25;background:#000e;backdrop-filter:blur(10px);display:none;flex-direction:column;padding:calc(20px + env(safe-area-inset-top)) 20px 20px;overflow-y:auto;user-select:text;-webkit-user-select:text;}
+#about.open{display:flex}
+#about h3{margin:18px 0 8px;font-size:13px;letter-spacing:.1em;color:var(--acc);}
+#about h2{margin:0;font-size:20px;}
+#about .ver{font-size:12px;color:#aaa;margin-top:4px}
+#about ul{margin:0;padding:0;list-style:none;font-size:13px;line-height:1.6}
+#about li{padding:8px 0;border-top:1px solid #fff2}
+#about li b{display:block;color:#fff}
+#about li span{color:#bbb}
+#about a{color:#6cf;word-break:break-all}
+#aboutClose{margin:20px 0 0;padding:11px;border:0;border-radius:12px;background:var(--acc);color:#000;font-weight:700;font-size:14px;cursor:pointer;flex:none;}
 #closeSheet{margin:12px 0 0;width:100%;padding:10px;border:0;border-radius:12px;background:var(--acc);color:#000;font-weight:700;font-size:14px;cursor:pointer;}
 
 /* ---- preview ---- */
@@ -137,7 +149,15 @@ body.recording #shutter::after{inset:20px;border-radius:8px;background:var(--rec
     <div class="set"><span>日付の写し込み</span><input type="checkbox" id="stamp" checked></div>
     <div class="set"><span>🎙 録音</span><input type="checkbox" id="mic" checked></div>
     <div class="set"><span>🔊 シャッター音</span><input type="checkbox" id="sound" checked></div>
+    <button id="aboutBtn" class="sub">ℹ️ 更新履歴・作者連絡先</button>
     <button id="closeSheet">閉じる</button>
+  </div>
+
+  <div id="about">
+    <h2>📷 平成カメラ</h2><div class="ver" id="aboutVer"></div>
+    <h3>更新履歴</h3><ul id="aboutLog"></ul>
+    <h3>作者連絡先</h3><ul id="aboutContact"></ul>
+    <button id="aboutClose">閉じる</button>
   </div>
 
   <div id="preview"><div id="pvBody"></div><div class="btns"><a id="pvSave" download>保存</a><button id="pvClose">閉じる</button></div></div>
@@ -156,8 +176,10 @@ const LOOKS={
   ccd:{name:"CCD",label:"CCD コンデジ(2002)",fps:24},
   cmos:{name:"CMOS",label:"CMOS ケータイ(2008)",fps:24},
   "8mm":{name:"8mm",label:"8ミリビデオ",fps:12},
-  vhs:{name:"VHS",label:"VHS ホームビデオ",fps:15}
+  vhs:{name:"VHS",label:"VHS ホームビデオ",fps:15},
+  dv:{name:"miniDV",label:"miniDV ハンディカム",fps:30,hiss:.35}
 };
+LOOKS.ccd.hiss=.5;LOOKS.cmos.hiss=.4;LOOKS["8mm"].hiss=1.2;LOOKS.vhs.hiss=1;
 let look="ccd",kind="photo",facing="environment",zoom=1,recording=false;
 let stream=null,recorder=null,blobs=[],recStartTime=0,lastURL=null,lastKind=null;
 let LW=240,LH=320,SC=2;
@@ -242,6 +264,119 @@ function initFixed(){
 }
 let prevCol=null,smear=null,skew=0,vigTab=null;
 window.addEventListener("resize",fitCanvas);
+
+/* ================= miniDV : WebGL シェーダー ================= */
+// 4:2:0 クロマサブサンプリング(2x2で色を共有)＋横方向の色にじみ＋DCTブロック風の量子化、
+// さらに数フレームだけ発生するデジタルバグ(マクロブロック欠落/固着/色ズレ)。
+const DV_VS=`attribute vec2 p;varying vec2 v;void main(){v=p*.5+.5;gl_Position=vec4(p,0.,1.);}`;
+const DV_FS=`precision highp float;
+varying vec2 v;
+uniform sampler2D uTex,uPrev;
+uniform vec4 uRect;      // 切り出し(ズーム) x,y,w,h
+uniform vec2 uRes;       // 出力解像度(px)
+uniform float uTime,uNoise,uGlitch,uSeed,uBlock;
+float h21(vec2 q){q=fract(q*vec2(123.34,456.21));q+=dot(q,q+45.32);return fract(q.x*q.y);}
+vec3 cam(vec2 px){return texture2D(uTex,uRect.xy+uRect.zw*(px/uRes)).rgb;}
+vec3 rgb2yuv(vec3 c){return vec3(dot(c,vec3(.299,.587,.114)),dot(c,vec3(-.169,-.331,.5)),dot(c,vec3(.5,-.419,-.081)));}
+vec3 yuv2rgb(vec3 y){return vec3(y.x+1.402*y.z,y.x-.344*y.y-.714*y.z,y.x+1.772*y.y);}
+// 4:2:0: 輝度は画素ごと、色差は2x2ブロックの平均＋横にもう少し滲ませる
+vec3 dvDecode(vec2 px){
+  vec2 f=floor(px);
+  float Y=rgb2yuv(cam(f+.5)).x;
+  vec2 b=floor(f/2.)*2.;
+  vec2 uv=vec2(0.);
+  for(int i=-1;i<=2;i++){           // 横4画素分(=ブロック2つ分に少し跨る)
+    for(int j=0;j<2;j++){
+      float w=(i==-1||i==2)?.5:1.;
+      vec3 t=rgb2yuv(cam(b+vec2(float(i),float(j))+.5));
+      uv+=t.yz*w;
+    }
+  }
+  uv/=6.;
+  return yuv2rgb(vec3(Y,uv));
+}
+void main(){
+  vec2 px=v*uRes;
+  vec3 col=dvDecode(px);
+  // DCT風: ブロックごとに輝度を軽く量子化＋ブロック境界のわずかな段差
+  vec2 bk=floor(px/uBlock);
+  float bn=h21(bk+7.)*.04-.02;
+  col+=bn*.6;
+  col=floor(col*48.+.5)/48.;
+  // 色を濃く、やや鮮鋭に
+  float l=dot(col,vec3(.299,.587,.114));
+  col=mix(vec3(l),col,1.18);col=(col-.5)*1.06+.5;
+  // 微小なテープ/CCDノイズ
+  col+=(h21(px+uTime)-.5)*uNoise*.12;
+  // ---- デジタルバグ ----
+  if(uGlitch>0.){
+    vec2 gb=floor(px/uBlock);
+    float r=h21(gb+uSeed);
+    float band=step(.55,h21(vec2(floor(px.y/(uBlock*3.)),uSeed)));   // 横帯状に壊れやすい
+    float th=uGlitch*(.10+.25*band);
+    if(r<th*.45){                       // 前フレーム固着
+      col=texture2D(uPrev,v).rgb;
+    }else if(r<th*.75){                 // DC成分のみ(べた塗り)＋色ズレ
+      vec3 m=dvDecode((gb+.5)*uBlock);
+      vec3 y=rgb2yuv(m);y.yz+=(vec2(h21(gb+1.3),h21(gb+2.7))-.5)*.7;
+      col=yuv2rgb(y);
+    }else if(r<th){                     // 別ブロックの内容が混入
+      vec2 o=(vec2(h21(gb+3.1),h21(gb+5.9))-.5)*12.*uBlock;
+      col=dvDecode(px+o);
+    }
+  }
+  gl_FragColor=vec4(clamp(col,0.,1.),1.);
+}`;
+let glc=null,gl=null,glProg=null,glTex=null,glPrev=null,glU={};
+function initGL(){
+  try{
+    glc=document.createElement("canvas");
+    gl=glc.getContext("webgl",{preserveDrawingBuffer:true,antialias:false});
+    if(!gl)return false;
+    const sh=(t,src)=>{const o=gl.createShader(t);gl.shaderSource(o,src);gl.compileShader(o);
+      if(!gl.getShaderParameter(o,gl.COMPILE_STATUS))throw new Error(gl.getShaderInfoLog(o));return o;};
+    glProg=gl.createProgram();
+    gl.attachShader(glProg,sh(gl.VERTEX_SHADER,DV_VS));gl.attachShader(glProg,sh(gl.FRAGMENT_SHADER,DV_FS));
+    gl.linkProgram(glProg);gl.useProgram(glProg);
+    const buf=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buf);
+    gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);
+    const loc=gl.getAttribLocation(glProg,"p");gl.enableVertexAttribArray(loc);gl.vertexAttribPointer(loc,2,gl.FLOAT,false,0,0);
+    for(const n of["uTex","uPrev","uRect","uRes","uTime","uNoise","uGlitch","uSeed","uBlock"])glU[n]=gl.getUniformLocation(glProg,n);
+    const mk=()=>{const t=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,t);
+      gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);return t;};
+    glTex=mk();glPrev=mk();
+    gl.uniform1i(glU.uTex,0);gl.uniform1i(glU.uPrev,1);
+    return true;
+  }catch(e){console.warn("WebGL init failed",e);gl=null;return false;}
+}
+// デジタルバグの発生ロジック：普段は出ず、まれに2〜6フレームだけ発生する
+let bugLeft=0,bugStrength=0,bugSeed=0;
+function updateBug(k){
+  if(bugLeft<=0&&Math.random()<(.004+.012*k)){      // 平均 数秒に1回程度(60fps換算)
+    bugLeft=2+(Math.random()*5|0);bugStrength=.35+Math.random()*.65;
+  }
+  if(bugLeft>0){bugLeft--;bugSeed=Math.random()*100;return bugStrength*(bugLeft===0?.5:1);}
+  return 0;
+}
+function drawDV(k,sx,sy,sw,sh,vw,vh){
+  if(glc.width!==LW||glc.height!==LH){glc.width=LW;glc.height=LH;}
+  gl.viewport(0,0,LW,LH);
+  gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,glTex);
+  gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,true);
+  gl.texImage2D(gl.TEXTURE_2D,0,gl.RGB,gl.RGB,gl.UNSIGNED_BYTE,video);
+  gl.activeTexture(gl.TEXTURE1);gl.bindTexture(gl.TEXTURE_2D,glPrev);
+  gl.uniform4f(glU.uRect,sx/vw,sy/vh,sw/vw,sh/vh);
+  gl.uniform2f(glU.uRes,LW,LH);gl.uniform1f(glU.uTime,frameN%1000*.1);
+  gl.uniform1f(glU.uNoise,k);gl.uniform1f(glU.uBlock,6);
+  const g=updateBug(k);
+  gl.uniform1f(glU.uGlitch,g);gl.uniform1f(glU.uSeed,bugSeed);
+  gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
+  // 今フレームを「前フレーム」として保存(固着ブロック用)
+  gl.activeTexture(gl.TEXTURE1);gl.bindTexture(gl.TEXTURE_2D,glPrev);
+  gl.copyTexImage2D(gl.TEXTURE_2D,0,gl.RGBA,0,0,LW,LH,0);
+  lctx.drawImage(glc,0,0);
+}
 
 /* ================= 画像処理 ================= */
 const clamp=v=>v<0?0:v>255?255:v;
@@ -355,13 +490,13 @@ function estimateSkew(d,w,h){
 function drawDateStamp(){
   if(!$("stamp").checked)return;
   const n=new Date(),p=v=>String(v).padStart(2,"0");
-  const t=look==="vhs"?`${n.getFullYear()}.${p(n.getMonth()+1)}.${p(n.getDate())}  ${p(n.getHours())}:${p(n.getMinutes())}`
+  const t=(look==="vhs"||look==="dv")?`${n.getFullYear()}.${p(n.getMonth()+1)}.${p(n.getDate())}  ${p(n.getHours())}:${p(n.getMinutes())}`
           :`'${String(n.getFullYear()).slice(-2)} ${p(n.getMonth()+1)} ${p(n.getDate())}`;
   ctx.font=`${Math.round(canvas.width/30)}px 'Press Start 2P',monospace`;
   ctx.textAlign="right";ctx.textBaseline="alphabetic";
   const x=canvas.width-canvas.width*.04,y=canvas.height-canvas.height*.035;
   ctx.fillStyle="#ff7a00";ctx.shadowColor="#ff3d0088";ctx.shadowBlur=4;
-  if(look==="vhs"){ctx.fillStyle="#fff";ctx.shadowColor="#0008";}
+  if(look==="vhs"||look==="dv"){ctx.fillStyle="#fff";ctx.shadowColor="#0008";}
   ctx.fillText(t,x,y);ctx.shadowBlur=0;
 }
 
@@ -374,12 +509,16 @@ function render(){
     sw/=zoom;sh/=zoom;
     const sx=(vw-sw)/2,sy=(vh-sh)/2;
     lctx.drawImage(video,sx,sy,sw,sh,0,0,LW,LH);
-    const img=lctx.getImageData(0,0,LW,LH),k=amount();
-    if(look==="ccd")processCCD(img.data,LW,LH,k);
-    else if(look==="cmos"){estimateSkew(img.data,LW,LH);processCMOS(img.data,LW,LH,k);}
-    else if(look==="8mm")process8mm(img.data,LW,LH,k);
-    else processVHS(img.data,LW,LH,k);
-    lctx.putImageData(img,0,0);
+    const k=amount();
+    if(look==="dv")drawDV(k,sx,sy,sw,sh,vw,vh);
+    else{
+      const img=lctx.getImageData(0,0,LW,LH);
+      if(look==="ccd")processCCD(img.data,LW,LH,k);
+      else if(look==="cmos"){estimateSkew(img.data,LW,LH);processCMOS(img.data,LW,LH,k);}
+      else if(look==="8mm")process8mm(img.data,LW,LH,k);
+      else processVHS(img.data,LW,LH,k);
+      lctx.putImageData(img,0,0);
+    }
     ctx.imageSmoothingEnabled=false;
     ctx.fillStyle="#000";ctx.fillRect(0,0,canvas.width,canvas.height);
     if(look==="cmos"&&Math.abs(skew)>.3){ // 行ごとのずれ（ジェロ効果）
@@ -425,17 +564,75 @@ function takePhoto(){
     const a=document.createElement("a");a.href=url;a.download=`heisei_${look}_${Date.now()}.jpg`;a.click();
   },"image/jpeg",0.92);
 }
+/* ================= テープ素材風オーディオ合成 =================
+   マイク → (帯域制限・軽い飽和・ワウフラッター) → 録音用ノード
+   ＋ ホワイトノイズ(ヒス) ＋ ときどきのドロップアウト/ポップ を合成して録音する。
+   プレビューは無音のまま。 */
+let tapeNodes=null;
+function buildTapeAudio(){
+  const a=audio();if(!a)return null;
+  const dest=a.createMediaStreamDestination();
+  const nodes=[];const add=n=>{nodes.push(n);return n;};
+  const k=amount(),hissF=LOOKS[look].hiss??1;
+  const lpf=look==="vhs"?9000:look==="8mm"?7000:look==="dv"?15000:12000;
+  const mic=stream&&stream.getAudioTracks()[0];
+  if(mic){
+    const src=add(a.createMediaStreamSource(new MediaStream([mic])));
+    const hp=add(a.createBiquadFilter());hp.type="highpass";hp.frequency.value=90;
+    const lp=add(a.createBiquadFilter());lp.type="lowpass";lp.frequency.value=lpf;
+    const ws=add(a.createWaveShaper());           // テープ飽和(tanh)
+    const c=new Float32Array(1024);for(let i=0;i<1024;i++){const x=i/512-1;c[i]=Math.tanh(x*(1.2+k*1.5));}
+    ws.curve=c;
+    const dl=add(a.createDelay(0.05));dl.delayTime.value=.01;  // ワウ・フラッター
+    const lfo=add(a.createOscillator()),lg=add(a.createGain());
+    lfo.frequency.value=.8+k*3;lg.gain.value=.0004+.0012*k*hissF;lfo.connect(lg).connect(dl.delayTime);lfo.start();
+    src.connect(hp);hp.connect(lp);lp.connect(ws);ws.connect(dl);dl.connect(dest);
+  }
+  // ホワイトノイズ(2秒ループ)＋高域寄りフィルタ＝テープヒス
+  const len=a.sampleRate*2,nb=a.createBuffer(1,len,a.sampleRate),d=nb.getChannelData(0);
+  for(let i=0;i<len;i++)d[i]=Math.random()*2-1;
+  const ns=add(a.createBufferSource());ns.buffer=nb;ns.loop=true;
+  const nhp=add(a.createBiquadFilter());nhp.type="highpass";nhp.frequency.value=1200;
+  const nlp=add(a.createBiquadFilter());nlp.type="lowpass";nlp.frequency.value=Math.min(lpf,10000);
+  const hiss=add(a.createGain());
+  const base=(.006+.07*k)*hissF;hiss.gain.value=base;
+  ns.connect(nhp);nhp.connect(nlp);nlp.connect(hiss);hiss.connect(dest);ns.start();
+  // 低域ハム(ごく小さく)
+  const hum=add(a.createOscillator()),hg=add(a.createGain());hum.frequency.value=60;hg.gain.value=.002+.01*k*hissF;
+  hum.connect(hg).connect(dest);hum.start();
+  // 不規則なヒス変動・ドロップアウト・ポップノイズ
+  const timer=setInterval(()=>{
+    const t=a.currentTime;
+    hiss.gain.setTargetAtTime(base*(.8+Math.random()*.5),t,.2);
+    if(Math.random()<.04*(.3+k)){ // 瞬間的な音量落ち込みと復帰
+      const m=nodes.find(n=>n instanceof WaveShaperNode);
+      hiss.gain.setValueAtTime(base*3,t);hiss.gain.setTargetAtTime(base,t+.03,.05);
+    }
+    if(Math.random()<.05*(.3+k)){ // プチッというポップ
+      const pb=a.createBuffer(1,a.sampleRate*.012|0,a.sampleRate),pd=pb.getChannelData(0);
+      for(let i=0;i<pd.length;i++)pd[i]=(Math.random()*2-1)*Math.pow(1-i/pd.length,2);
+      const ps=a.createBufferSource(),pg=a.createGain();ps.buffer=pb;pg.gain.value=.2+.3*k;ps.connect(pg).connect(dest);ps.start(t);
+    }
+  },250);
+  return {track:dest.stream.getAudioTracks()[0],stop(){clearInterval(timer);
+    nodes.forEach(n=>{try{n.stop&&n.stop();}catch(e){}try{n.disconnect();}catch(e){}});}};
+}
+
 function startRec(){
   blobs=[];
   beepStart();
   const fps=LOOKS[look].fps;
   const cs=canvas.captureStream(fps);
-  const at=stream&&stream.getAudioTracks()[0];if(at)cs.addTrack(at);
+  tapeNodes=null;
+  try{tapeNodes=buildTapeAudio();}catch(e){console.warn(e);}
+  if(tapeNodes)cs.addTrack(tapeNodes.track);
+  else{const at=stream&&stream.getAudioTracks()[0];if(at)cs.addTrack(at);}
   const types=["video/webm;codecs=vp8,opus","video/webm","video/mp4"];
   const mt=types.find(t=>window.MediaRecorder&&MediaRecorder.isTypeSupported(t));
   try{recorder=new MediaRecorder(cs,mt?{mimeType:mt}:undefined);}catch(e){toast("録画に対応していません");return;}
   recorder.ondataavailable=e=>{if(e.data.size>0)blobs.push(e.data);};
   recorder.onstop=()=>{
+    if(tapeNodes){tapeNodes.stop();tapeNodes=null;}
     const type=recorder.mimeType||"video/webm";
     const url=URL.createObjectURL(new Blob(blobs,{type}));
     setThumb(url,"video");lastURL=url;lastKind="video";
@@ -462,6 +659,7 @@ $("shutter").onclick=()=>{
 
 /* ================= UI ================= */
 const looksEl=$("looks");
+if(!initGL())delete LOOKS.dv;
 for(const k in LOOKS){
   const b=document.createElement("button");b.textContent=LOOKS[k].label;b.dataset.l=k;if(k===look)b.className="on";
   b.onclick=()=>{
@@ -516,6 +714,25 @@ function openPreview(){
 }
 $("thumb").onclick=openPreview;
 $("pvClose").onclick=()=>{$("preview").classList.remove("open");$("pvBody").innerHTML="";};
+
+/* ================= 情報・更新履歴 ================= */
+const APP_VERSION="2.1.0";
+const CONTACT={
+  github:"https://github.com/higashiikenaga/heisei_camera",
+  githubLabel:"github.com/higashiikenaga/heisei_camera",
+  email:"" // ← 公開してよいメールアドレスをここに入れると、メニューに表示されます
+};
+const HISTORY=[
+  ["2.1.0","miniDVルック(WebGLシェーダーによる4:2:0風の色にじみ)、数フレームだけ出るデジタルバグ(ブロックノイズ)、録音へのテープ風ホワイトノイズ合成を追加"],
+  ["2.0.0","UIをモバイルカメラ風に刷新。CCD/CMOSセンサーの質感(スミア・ローリングシャッター等)を再現。シャッター音と録画開始/停止の「ピッ」音を追加"],
+  ["1.0.0","初版公開(一眼風・コンデジ風・8ミリ風・VHS風、写真撮影と録画)"]
+];
+$("aboutVer").textContent="Version "+APP_VERSION;
+$("aboutLog").innerHTML=HISTORY.map(h=>`<li><b>v${h[0]}</b><span>${h[1]}</span></li>`).join("");
+$("aboutContact").innerHTML=`<li><b>GitHub</b><a href="${CONTACT.github}" target="_blank" rel="noopener">${CONTACT.githubLabel}</a></li>`+
+  (CONTACT.email?`<li><b>メール</b><a href="mailto:${CONTACT.email}">${CONTACT.email}</a></li>`:"");
+$("aboutBtn").onclick=()=>{$("sheet").classList.remove("open");$("about").classList.add("open");};
+$("aboutClose").onclick=()=>$("about").classList.remove("open");
 
 fitCanvas();
 await startCamera();
