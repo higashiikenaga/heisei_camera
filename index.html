@@ -20,23 +20,29 @@ body{display:flex;align-items:center;justify-content:center;}
 }
 
 /* ---- top bar ---- */
-#top{position:absolute;top:0;left:0;right:0;z-index:5;height:calc(54px + env(safe-area-inset-top));
-  padding:env(safe-area-inset-top) 14px 0;display:flex;align-items:center;justify-content:space-between;
-  background:linear-gradient(#000a,#0000);}
+#top{position:absolute;top:0;left:0;right:0;z-index:5;height:calc(60px + env(safe-area-inset-top));
+  padding:env(safe-area-inset-top) 12px 0;display:flex;align-items:center;justify-content:space-between;gap:8px;
+  background:linear-gradient(#000b,#0000);}
+#ratio{display:flex;background:#0007;backdrop-filter:blur(8px);border-radius:18px;padding:3px;gap:2px;}
+#ratio button{margin:0;border:0;background:transparent;color:#ddd;font-size:12px;font-weight:700;padding:6px 12px;
+  border-radius:15px;cursor:pointer;letter-spacing:.04em;font-variant-numeric:tabular-nums;}
+#ratio button.on{background:var(--acc);color:#000;}
+body.recording #ratio button:not(.on){opacity:.35;pointer-events:none;}
+#hudL{position:absolute;left:14px;top:calc(62px + env(safe-area-inset-top));z-index:4;display:flex;flex-direction:column;gap:6px;align-items:flex-start;pointer-events:none;}
 .tbtn{width:38px;height:38px;border-radius:50%;border:0;background:#0006;color:#fff;font-size:18px;
   display:flex;align-items:center;justify-content:center;cursor:pointer;margin:0;padding:0;}
 .tbtn.on{background:var(--acc);color:#000;}
-#lookName{font-size:12px;font-weight:700;letter-spacing:.08em;padding:5px 12px;border-radius:14px;background:#0007;}
+#lookName{font-size:11px;font-weight:700;letter-spacing:.12em;padding:4px 10px;border-radius:6px;background:#0007;border-left:3px solid var(--acc);}
 #recChip{display:none;align-items:center;gap:6px;background:var(--rec);padding:4px 10px;border-radius:12px;
   font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;}
 #recChip i{width:8px;height:8px;border-radius:50%;background:#fff;animation:bl 1s steps(2) infinite;}
 @keyframes bl{50%{opacity:.1}}
 body.recording #recChip{display:flex}
-body.recording #lookName{display:none}
+
 
 /* ---- viewfinder ---- */
-#vf{position:relative;flex:1;min-height:0;background:#000;overflow:hidden;touch-action:none;}
-canvas#canvas{position:absolute;inset:0;width:100%;height:100%;image-rendering:pixelated;}
+#vf{position:absolute;inset:0;background:#000;overflow:hidden;touch-action:none;}
+canvas#canvas{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);image-rendering:pixelated;}
 #flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;}
 #flash.go{animation:fl .28s ease-out;}
 @keyframes fl{0%{opacity:.95}100%{opacity:0}}
@@ -47,22 +53,21 @@ canvas#canvas{position:absolute;inset:0;width:100%;height:100%;image-rendering:p
   pointer-events:none;opacity:0;transform:translate(-50%,-50%) scale(1.4);}
 #focus.go{animation:fo 1.1s ease-out;}
 @keyframes fo{0%{opacity:1;transform:translate(-50%,-50%) scale(1.4)}25%{opacity:1;transform:translate(-50%,-50%) scale(1)}85%{opacity:1}100%{opacity:0;transform:translate(-50%,-50%) scale(1)}}
-#grid{position:absolute;inset:0;pointer-events:none;opacity:.0;transition:opacity .2s;
+#grid{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);pointer-events:none;opacity:.0;transition:opacity .2s;
   background:
    linear-gradient(90deg,transparent 33.2%,#fff5 33.3%,transparent 33.5%,transparent 66.5%,#fff5 66.6%,transparent 66.8%),
    linear-gradient(transparent 33.2%,#fff5 33.3%,transparent 33.5%,transparent 66.5%,#fff5 66.6%,transparent 66.8%);}
 #grid.on{opacity:1}
-#zoomPill{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);display:flex;gap:4px;
-  background:#0006;padding:4px;border-radius:22px;z-index:3;}
+#zoomPill{align-self:center;display:flex;gap:4px;background:#0007;backdrop-filter:blur(8px);padding:4px;border-radius:22px;}
 #zoomPill button{margin:0;border:0;border-radius:50%;width:34px;height:34px;font-size:11px;font-weight:700;
   background:transparent;color:#fff;cursor:pointer;}
 #zoomPill button.on{background:#000a;color:var(--acc);}
 
 /* ---- bottom ---- */
-#bottom{background:#000;padding:10px 0 calc(14px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:10px;}
-#looks{display:flex;gap:6px;overflow-x:auto;padding:0 16px;scrollbar-width:none;justify-content:center;}
+#bottom{position:absolute;left:0;right:0;bottom:0;z-index:5;background:linear-gradient(#0000,#000c 38%);padding:30px 0 calc(14px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:10px;}
+#looks{display:flex;gap:6px;overflow-x:auto;padding:0 16px;scrollbar-width:none;justify-content:safe center;}
 #looks::-webkit-scrollbar{display:none}
-#looks button{margin:0;flex:none;border:0;background:#1c1c1e;color:#bbb;border-radius:16px;padding:7px 13px;
+#looks button{margin:0;flex:none;border:0;background:#0008;backdrop-filter:blur(8px);color:#bbb;border-radius:16px;padding:7px 13px;
   font-size:12px;font-weight:700;cursor:pointer;letter-spacing:.04em;}
 #looks button.on{background:var(--acc);color:#000;}
 #kind{display:flex;justify-content:center;gap:26px;font-size:13px;font-weight:700;letter-spacing:.1em;}
@@ -117,10 +122,10 @@ body.recording #shutter::after{inset:20px;border-radius:8px;background:var(--rec
 <div id="phone">
   <div id="top">
     <button class="tbtn" id="gridBtn" title="グリッド">▦</button>
-    <div id="lookName">CCD</div>
-    <div id="recChip"><i></i><span id="timecode">00:00</span></div>
+    <div id="ratio"><button data-r="16:9" class="on">16:9</button><button data-r="4:3">4:3</button><button data-r="1:1">1:1</button></div>
     <button class="tbtn" id="gearBtn" title="設定">⚙</button>
   </div>
+  <div id="hudL"><div id="lookName">CCD</div><div id="recChip"><i></i><span id="timecode">00:00</span></div></div>
 
   <div id="vf">
     <canvas id="canvas" width="480" height="640"></canvas>
@@ -128,12 +133,12 @@ body.recording #shutter::after{inset:20px;border-radius:8px;background:var(--rec
     <div id="focus"></div>
     <div id="shutterBlack"></div>
     <div id="flash"></div>
-    <div id="zoomPill">
-      <button data-z="1" class="on">1×</button><button data-z="2">2×</button><button data-z="4">4×</button>
-    </div>
   </div>
 
   <div id="bottom">
+    <div id="zoomPill">
+      <button data-z="1" class="on">1×</button><button data-z="2">2×</button><button data-z="4">4×</button>
+    </div>
     <div id="looks"></div>
     <div id="kind"><span data-k="photo" class="on">写真</span><span data-k="video">ビデオ</span></div>
     <div id="row">
@@ -248,10 +253,19 @@ async function startCamera(){
 }
 
 /* ================= サイズ ================= */
+let ratioKey="16:9";
 function fitCanvas(){
-  if(recording)return;
   const vf=$("vf"),W=vf.clientWidth||360,H=vf.clientHeight||640;
-  LW=240;LH=Math.max(120,Math.round(LW*H/W/2)*2);SC=2;
+  const portrait=H>W;
+  const [rw,rh]=ratioKey.split(":").map(Number);
+  const r=portrait?rh/rw:rw/rh;                 // 画面の向きに合わせて 9:16 / 3:4 も自動で
+  // 表示サイズ(画面に収まる最大)
+  let cw=W,ch=W/r;if(ch>H){ch=H;cw=H*r;}
+  for(const el of[canvas,$("grid")]){el.style.width=cw+"px";el.style.height=ch+"px";}
+  if(recording)return;
+  // 内部解像度(レトロ感のため低解像度のまま)
+  if(r>=1){LH=240;LW=Math.round(240*r/2)*2;}else{LW=240;LH=Math.round(240/r/2)*2;}
+  SC=2;
   low.width=LW;low.height=LH;canvas.width=LW*SC;canvas.height=LH*SC;
   initFixed();
 }
@@ -684,6 +698,10 @@ $("flip").onclick=async()=>{if(recording)return;facing=facing==="environment"?"u
 $("gridBtn").onclick=()=>{$("grid").classList.toggle("on");$("gridBtn").classList.toggle("on");};
 $("gearBtn").onclick=()=>$("sheet").classList.add("open");
 $("closeSheet").onclick=()=>$("sheet").classList.remove("open");
+document.querySelectorAll("#ratio button").forEach(b=>b.onclick=()=>{
+  if(recording)return;ratioKey=b.dataset.r;
+  document.querySelectorAll("#ratio button").forEach(x=>x.classList.toggle("on",x===b));fitCanvas();
+});
 $("mic").onchange=()=>{if(!recording)startCamera();};
 
 // タップでフォーカス枠、ピンチでズーム
@@ -716,13 +734,14 @@ $("thumb").onclick=openPreview;
 $("pvClose").onclick=()=>{$("preview").classList.remove("open");$("pvBody").innerHTML="";};
 
 /* ================= 情報・更新履歴 ================= */
-const APP_VERSION="2.1.0";
+const APP_VERSION="2.2.0";
 const CONTACT={
   github:"https://github.com/higashiikenaga/heisei_camera",
   githubLabel:"github.com/higashiikenaga/heisei_camera",
-  email:"" // ← 公開してよいメールアドレスをここに入れると、メニューに表示されます
+  email:"sanyokai05@gmail.com"
 };
 const HISTORY=[
+  ["2.2.0","撮影比率(16:9 / 4:3 / 1:1)を選べるように。カメラ映像をほぼ全画面で表示するUIに刷新。作者メールアドレスを追加"],
   ["2.1.0","miniDVルック(WebGLシェーダーによる4:2:0風の色にじみ)、数フレームだけ出るデジタルバグ(ブロックノイズ)、録音へのテープ風ホワイトノイズ合成を追加"],
   ["2.0.0","UIをモバイルカメラ風に刷新。CCD/CMOSセンサーの質感(スミア・ローリングシャッター等)を再現。シャッター音と録画開始/停止の「ピッ」音を追加"],
   ["1.0.0","初版公開(一眼風・コンデジ風・8ミリ風・VHS風、写真撮影と録画)"]
