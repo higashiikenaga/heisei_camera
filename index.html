@@ -13,11 +13,7 @@
 html,body{margin:0;height:100%;background:#000;color:#fff;overflow:hidden;
   font-family:-apple-system,"Hiragino Sans","Noto Sans JP",system-ui,sans-serif;}
 body{display:flex;align-items:center;justify-content:center;}
-#phone{position:relative;width:100%;height:100dvh;max-width:430px;max-height:932px;background:#000;
-  display:flex;flex-direction:column;overflow:hidden;}
-@media (min-width:500px) and (min-height:700px){
-  #phone{height:min(100dvh - 24px,900px);border-radius:44px;border:8px solid #1c1c1e;box-shadow:0 0 0 2px #333,0 20px 80px #000a;}
-}
+#phone{position:relative;width:100%;height:100dvh;background:#000;display:flex;flex-direction:column;overflow:hidden;}
 
 /* ---- top bar ---- */
 #top{position:absolute;top:0;left:0;right:0;z-index:5;height:calc(60px + env(safe-area-inset-top));
@@ -73,7 +69,7 @@ canvas#canvas{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
 #kind{display:flex;justify-content:center;gap:26px;font-size:13px;font-weight:700;letter-spacing:.1em;}
 #kind span{color:#aaa;cursor:pointer;padding:2px 4px;}
 #kind span.on{color:var(--acc);}
-#row{display:flex;align-items:center;justify-content:space-around;padding:0 18px;}
+#row{display:flex;align-items:center;justify-content:space-around;padding:0 18px;width:100%;max-width:480px;align-self:center;}
 #thumb{width:52px;height:52px;border-radius:10px;border:2px solid #444;background:#222 center/cover;cursor:pointer;padding:0;margin:0;}
 #shutter{width:76px;height:76px;border-radius:50%;border:4px solid #fff;background:transparent;position:relative;cursor:pointer;margin:0;padding:0;}
 #shutter::after{content:"";position:absolute;inset:4px;border-radius:50%;background:#fff;transition:all .12s;}
@@ -83,7 +79,7 @@ body.recording #shutter::after{inset:20px;border-radius:8px;background:var(--rec
 #flip{width:52px;height:52px;border-radius:50%;border:0;background:#1c1c1e;color:#fff;font-size:22px;cursor:pointer;margin:0;padding:0;}
 
 /* ---- settings sheet ---- */
-#sheet{position:absolute;left:0;right:0;bottom:0;z-index:10;background:#1c1c1ee8;backdrop-filter:blur(18px);
+#sheet{position:absolute;left:0;right:0;bottom:0;max-width:520px;margin:0 auto;z-index:10;background:#1c1c1ee8;backdrop-filter:blur(18px);
   border-radius:20px 20px 0 0;padding:16px 20px calc(20px + env(safe-area-inset-bottom));transform:translateY(105%);transition:transform .25s;}
 #sheet.open{transform:none}
 #sheet h3{margin:0 0 12px;font-size:14px;letter-spacing:.1em;}
@@ -91,7 +87,7 @@ body.recording #shutter::after{inset:20px;border-radius:8px;background:var(--rec
 .set input[type=range]{flex:1;max-width:160px;accent-color:var(--acc);}
 .set input[type=checkbox]{width:44px;height:26px;accent-color:var(--acc);}
 #aboutBtn{margin:12px 0 0;width:100%;padding:10px;border:0;border-radius:12px;background:#3a3a3c;color:#fff;font-weight:700;font-size:14px;cursor:pointer;}
-#about{position:absolute;inset:0;z-index:25;background:#000e;backdrop-filter:blur(10px);display:none;flex-direction:column;padding:calc(20px + env(safe-area-inset-top)) 20px 20px;overflow-y:auto;user-select:text;-webkit-user-select:text;}
+#about{position:absolute;inset:0;padding-left:max(20px,calc(50% - 360px))!important;padding-right:max(20px,calc(50% - 360px))!important;z-index:25;background:#000e;backdrop-filter:blur(10px);display:none;flex-direction:column;padding:calc(20px + env(safe-area-inset-top)) 20px 20px;overflow-y:auto;user-select:text;-webkit-user-select:text;}
 #about.open{display:flex}
 #about h3{margin:18px 0 8px;font-size:13px;letter-spacing:.1em;color:var(--acc);}
 #about h2{margin:0;font-size:20px;}
@@ -122,7 +118,7 @@ body.recording #shutter::after{inset:20px;border-radius:8px;background:var(--rec
 <div id="phone">
   <div id="top">
     <button class="tbtn" id="gridBtn" title="グリッド">▦</button>
-    <div id="ratio"><button data-r="16:9" class="on">16:9</button><button data-r="4:3">4:3</button><button data-r="1:1">1:1</button></div>
+    <div id="ratio"><button data-r="16:9" class="on">16:9</button><button data-r="4:3">4:3</button><button data-r="1:1">1:1</button><button data-r="FULL" id="rFull">全画面</button></div>
     <button class="tbtn" id="gearBtn" title="設定">⚙</button>
   </div>
   <div id="hudL"><div id="lookName">CCD</div><div id="recChip"><i></i><span id="timecode">00:00</span></div></div>
@@ -257,8 +253,9 @@ let ratioKey="16:9";
 function fitCanvas(){
   const vf=$("vf"),W=vf.clientWidth||360,H=vf.clientHeight||640;
   const portrait=H>W;
-  const [rw,rh]=ratioKey.split(":").map(Number);
-  const r=portrait?rh/rw:rw/rh;                 // 画面の向きに合わせて 9:16 / 3:4 も自動で
+  let r;
+  if(ratioKey==="FULL")r=W/H;                  // 画面にぴったり(縦長スマホ・PC画面向け)
+  else{const [rw,rh]=ratioKey.split(":").map(Number);r=portrait?rh/rw:rw/rh;}                 // 画面の向きに合わせて 9:16 / 3:4 も自動で
   // 表示サイズ(画面に収まる最大)
   let cw=W,ch=W/r;if(ch>H){ch=H;cw=H*r;}
   for(const el of[canvas,$("grid")]){el.style.width=cw+"px";el.style.height=ch+"px";}
@@ -278,6 +275,9 @@ function initFixed(){
 }
 let prevCol=null,smear=null,skew=0,vigTab=null;
 window.addEventListener("resize",fitCanvas);
+// 縦長スマホ(約19.5:9以上)は最初から「全画面」比率にする
+{const vf0=$("vf");if(vf0.clientHeight/vf0.clientWidth>1.85){ratioKey="FULL";
+  document.querySelectorAll("#ratio button").forEach(x=>x.classList.toggle("on",x.dataset.r==="FULL"));}}
 
 /* ================= miniDV : WebGL シェーダー ================= */
 // 4:2:0 クロマサブサンプリング(2x2で色を共有)＋横方向の色にじみ＋DCTブロック風の量子化、
@@ -734,20 +734,21 @@ $("thumb").onclick=openPreview;
 $("pvClose").onclick=()=>{$("preview").classList.remove("open");$("pvBody").innerHTML="";};
 
 /* ================= 情報・更新履歴 ================= */
-const APP_VERSION="2.2.0";
+const APP_VERSION="2.3.0";
 const CONTACT={
   github:"https://github.com/higashiikenaga/heisei_camera",
   githubLabel:"github.com/higashiikenaga/heisei_camera",
   email:"sanyokai05@gmail.com"
 };
 const HISTORY=[
-  ["2.2.0","撮影比率(16:9 / 4:3 / 1:1)を選べるように。カメラ映像をほぼ全画面で表示するUIに刷新。作者メールアドレスを追加"],
-  ["2.1.0","miniDVルック(WebGLシェーダーによる4:2:0風の色にじみ)、数フレームだけ出るデジタルバグ(ブロックノイズ)、録音へのテープ風ホワイトノイズ合成を追加"],
-  ["2.0.0","UIをモバイルカメラ風に刷新。CCD/CMOSセンサーの質感(スミア・ローリングシャッター等)を再現。シャッター音と録画開始/停止の「ピッ」音を追加"],
-  ["1.0.0","初版公開(一眼風・コンデジ風・8ミリ風・VHS風、写真撮影と録画)"]
+  ["2.3.0","2026-10-03","「全画面」比率を追加し、縦長スマホ(自動選択)やPCの横長画面にぴったり合うように。PCではウィンドウいっぱいに表示。更新履歴に日付を追加"],
+  ["2.2.0","2026-10-03","撮影比率(16:9 / 4:3 / 1:1)を選べるように。カメラ映像をほぼ全画面で表示するUIに刷新。作者メールアドレスを追加"],
+  ["2.1.0","2026-10-03","miniDVルック(WebGLシェーダーによる4:2:0風の色にじみ)、数フレームだけ出るデジタルバグ(ブロックノイズ)、録音へのテープ風ホワイトノイズ合成を追加"],
+  ["2.0.0","2026-10-03","UIをモバイルカメラ風に刷新。CCD/CMOSセンサーの質感(スミア・ローリングシャッター等)を再現。シャッター音と録画開始/停止の「ピッ」音を追加"],
+  ["1.0.0","2025-10-12","初版公開(一眼風・コンデジ風・8ミリ風・VHS風、写真撮影と録画)"]
 ];
 $("aboutVer").textContent="Version "+APP_VERSION;
-$("aboutLog").innerHTML=HISTORY.map(h=>`<li><b>v${h[0]}</b><span>${h[1]}</span></li>`).join("");
+$("aboutLog").innerHTML=HISTORY.map(h=>`<li><b>v${h[0]} <small style="color:#999;font-weight:400">${h[1]}</small></b><span>${h[2]}</span></li>`).join("");
 $("aboutContact").innerHTML=`<li><b>GitHub</b><a href="${CONTACT.github}" target="_blank" rel="noopener">${CONTACT.githubLabel}</a></li>`+
   (CONTACT.email?`<li><b>メール</b><a href="mailto:${CONTACT.email}">${CONTACT.email}</a></li>`:"");
 $("aboutBtn").onclick=()=>{$("sheet").classList.remove("open");$("about").classList.add("open");};
