@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://higashiikenaga.github.io/heisei_camera/sitemap.xml
