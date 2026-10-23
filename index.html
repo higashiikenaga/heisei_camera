@@ -48,42 +48,137 @@
 html,body{margin:0;height:100%;overflow:hidden;color:#fff;
   font-family:"Hiragino Sans","Noto Sans JP","Meiryo",system-ui,sans-serif;}
 body{display:flex;align-items:center;justify-content:center;
-  background:#0c0c0e repeating-linear-gradient(45deg,#0000 0 6px,#ffffff06 6px 7px);}
+  /* 机の上(木目＋ライティング) */
+  background:
+    radial-gradient(ellipse at 50% 35%,#ffffff14,#0000 60%),
+    repeating-linear-gradient(92deg,#0000 0 9px,#00000018 9px 11px,#0000 11px 23px,#ffffff08 23px 24px),
+    linear-gradient(180deg,#2a211b,#17110d);}
 button{font-family:inherit;}
+:root{
+  --grain:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  --brushH:repeating-linear-gradient(0deg,#ffffff10 0 1px,#0000 1px 2px,#00000010 2px 3px,#0000 3px 5px);
+  --brushV:repeating-linear-gradient(90deg,#ffffff12 0 1px,#0000 1px 2px,#00000012 2px 3px,#0000 3px 4px);
+  --lcdGrid:repeating-linear-gradient(0deg,#0000 0 2px,#0000001c 2px 3px),repeating-linear-gradient(90deg,#0000 0 2px,#0000001c 2px 3px);
+}
 
-/* ================= スキン定義 ================= */
-body[data-skin=g1]{--body:linear-gradient(#2c2d33,#131419);--fg:#ddd;--key:linear-gradient(#4a4c55,#2b2c33);--keyfg:#e8e8ea;--keysh:#000;--accent:#5ac8ff;--bezel:#07070a;--bezelring:#8d9099;--lcd:repeating-linear-gradient(0deg,#0000 0 2px,#0000001a 2px 3px),repeating-linear-gradient(90deg,#0000 0 2px,#0000001a 2px 3px);--osd:#9fe8ff;--r:18px;}
-body[data-skin=g2]{--body:linear-gradient(135deg,#f1f3f6,#aab0b9 55%,#d8dbe0);--fg:#222;--key:linear-gradient(#fbfbfc,#c4c8cf);--keyfg:#2b2f36;--keysh:#7d828b;--accent:#2a6cff;--bezel:#1a2a38;--bezelring:#666d77;--lcd:repeating-linear-gradient(0deg,#0000 0 2px,#0a2a4a22 2px 3px),repeating-linear-gradient(90deg,#0000 0 2px,#0a2a4a22 2px 3px);--osd:#fff;--r:14px;}
-body[data-skin=g3]{--body:linear-gradient(160deg,#ffd0e3,#ff8fbd 60%,#ff6fa6);--fg:#fff;--key:linear-gradient(#ffffff,#ffd9e8);--keyfg:#d3306f;--keysh:#c9507f;--accent:#ff3d8b;--bezel:#2a0a18;--bezelring:#fff;--lcd:repeating-linear-gradient(0deg,#0000 0 2px,#ff90c01c 2px 3px),repeating-linear-gradient(90deg,#0000 0 2px,#ff90c01c 2px 3px);--osd:#ffe3f0;--r:26px;}
-body[data-skin=c1]{--body:linear-gradient(160deg,#e2e5ea,#9ba0a9 60%,#c7cad0);--fg:#222;--key:linear-gradient(#4a4d55,#25272c);--keyfg:#eee;--keysh:#000;--accent:#e8002d;--bezel:#000;--bezelring:#555;--lcd:none;--osd:#fff;--r:12px;}
-body[data-skin=c2]{--body:radial-gradient(circle at 30% 20%,#2a2a2a,#0e0e0e);--fg:#ddd;--key:linear-gradient(#3b3b3b,#1d1d1d);--keyfg:#ddd;--keysh:#000;--accent:#ff4a1c;--bezel:#000;--bezelring:#333;--lcd:none;--osd:#fff;--r:10px;}
-body[data-skin=v1]{--body:linear-gradient(160deg,#9fb0c4,#6d7d92 55%,#8d9bb0);--fg:#1d2733;--key:linear-gradient(#e9eef5,#b7c1cf);--keyfg:#1f2b3a;--keysh:#4c5a6d;--accent:#ff3b30;--bezel:#000;--bezelring:#3a4658;--lcd:repeating-linear-gradient(0deg,#0000 0 2px,#0000001f 2px 3px);--osd:#fff;--r:16px;}
-body[data-skin=v2]{--body:linear-gradient(160deg,#25272c,#0d0e10);--fg:#cfd3d8;--key:linear-gradient(#41444b,#202226);--keyfg:#d9dde2;--keysh:#000;--accent:#39ff7a;--bezel:#000;--bezelring:#4a4d54;--lcd:repeating-linear-gradient(0deg,#0000 0 2px,#00000055 2px 3px);--osd:#7dffa6;--r:8px;}
+/* ================= スキン定義(素材・色) ================= */
+/* g1: 黒の光沢プラスチック(折りたたみ) */
+body[data-skin=g1]{--body:linear-gradient(105deg,#0000 30%,#ffffff12 38%,#0000 46%),linear-gradient(#34353c,#1a1b20 45%,#0f1013);
+  --fg:#d9dbe0;--key:linear-gradient(#53565f,#30323a 55%,#24262c);--keyfg:#eef0f3;--keysh:#050506;--accent:#5ac8ff;--plate:linear-gradient(#1b1c21,#121317);
+  --bezel:#050507;--bezelring:linear-gradient(#a8acb5,#5e626b);--lcd:var(--lcdGrid);--osd:#a8ecff;--r:18px;--grainOp:.18;--keyGloss:.35;}
+/* g2: アルミ風ヘアライン(ストレート) */
+body[data-skin=g2]{--body:var(--brushV),linear-gradient(100deg,#0000 25%,#ffffff55 40%,#0000 55%),linear-gradient(90deg,#9aa0a9,#dfe2e7 30%,#b6bbc3 60%,#eceef1 80%,#a2a7b0);
+  --fg:#2b2f36;--key:linear-gradient(#fdfdfe,#d7dade 60%,#bfc3ca);--keyfg:#262a31;--keysh:#6f747d;--accent:#2a6cff;--plate:linear-gradient(#c3c7ce,#a7acb4);
+  --bezel:#0d1620;--bezelring:linear-gradient(#e9ebee,#7d838c);--lcd:repeating-linear-gradient(0deg,#0000 0 2px,#0a2a4a26 2px 3px),repeating-linear-gradient(90deg,#0000 0 2px,#0a2a4a26 2px 3px);--osd:#fff;--r:14px;--grainOp:.12;--keyGloss:.5;}
+/* g3: パールピンク＋ラメ(折りたたみ) */
+body[data-skin=g3]{--body:radial-gradient(circle at 20% 15%,#fff 0 1px,#0000 2px) 0 0/23px 29px,radial-gradient(circle at 70% 60%,#fff9 0 1px,#0000 2px) 0 0/31px 37px,
+    linear-gradient(110deg,#0000 30%,#ffffff55 42%,#0000 54%),radial-gradient(ellipse at 30% 10%,#ffe6f0,#0000 60%),linear-gradient(160deg,#ffc6dc,#ff8fbd 55%,#f2649c);
+  --fg:#fff;--key:linear-gradient(#ffffff,#ffe3ee 55%,#ffc9dd);--keyfg:#cf2d6b;--keysh:#b8436f;--accent:#ff3d8b;--plate:linear-gradient(#ffb3cf,#f78ab3);
+  --bezel:#22060f;--bezelring:linear-gradient(#fff,#ffb6d2);--lcd:repeating-linear-gradient(0deg,#0000 0 2px,#ff90c020 2px 3px),repeating-linear-gradient(90deg,#0000 0 2px,#ff90c020 2px 3px);--osd:#ffe6f2;--r:26px;--grainOp:.1;--keyGloss:.7;}
+/* c1: シルバーのコンデジ(ヘアライン金属) */
+body[data-skin=c1]{--body:var(--brushH),linear-gradient(170deg,#0000 30%,#ffffff60 45%,#0000 60%),linear-gradient(180deg,#e6e8ec,#a5aab2 55%,#cfd2d7 80%,#9298a1);
+  --fg:#2a2d33;--key:linear-gradient(#5a5d66,#33363d 55%,#25272c);--keyfg:#f1f2f4;--keysh:#111;--accent:#e8002d;--plate:#0000;
+  --bezel:#000;--bezelring:linear-gradient(#6b6f77,#2c2e33);--lcd:repeating-linear-gradient(90deg,#0000 0 2px,#00000014 2px 3px);--osd:#fff;--r:14px;--grainOp:.14;--keyGloss:.3;}
+/* c2: ブラックのデジカメ(シボ加工＋ラバーグリップ) */
+body[data-skin=c2]{--body:radial-gradient(ellipse at 25% 15%,#ffffff14,#0000 55%),linear-gradient(#262626,#121212);
+  --fg:#d6d6d6;--key:linear-gradient(#484848,#262626 55%,#1b1b1b);--keyfg:#e2e2e2;--keysh:#000;--accent:#ff4a1c;--plate:#0000;
+  --bezel:#000;--bezelring:linear-gradient(#3a3a3a,#111);--lcd:repeating-linear-gradient(90deg,#0000 0 2px,#00000014 2px 3px);--osd:#fff;--r:12px;--grainOp:.42;--keyGloss:.2;}
+/* v1: ブルーシルバーのビデオカメラ(液晶パネル) */
+body[data-skin=v1]{--body:linear-gradient(165deg,#0000 30%,#ffffff40 44%,#0000 58%),linear-gradient(180deg,#b3c1d2,#7a8aa0 55%,#93a2b6 80%,#5f6e83);
+  --fg:#18212c;--key:linear-gradient(#f4f7fb,#c9d2de 55%,#aab6c6);--keyfg:#1b2735;--keysh:#3f4c5e;--accent:#ff3b30;--plate:#0000;
+  --bezel:#000;--bezelring:linear-gradient(#3e4a5c,#1d2531);--lcd:repeating-linear-gradient(0deg,#0000 0 2px,#00000022 2px 3px);--osd:#fff;--r:18px;--grainOp:.14;--keyGloss:.45;}
+/* v2: マットブラックのビデオカメラ(ビューファインダー＋アイカップ) */
+body[data-skin=v2]{--body:radial-gradient(ellipse at 30% 10%,#ffffff10,#0000 55%),linear-gradient(#202227,#0c0d0f);
+  --fg:#c9cdd3;--key:linear-gradient(#45484f,#26282d 55%,#1b1c20);--keyfg:#d9dde2;--keysh:#000;--accent:#39ff7a;--plate:#0000;
+  --bezel:#000;--bezelring:linear-gradient(#2c2e33,#0b0b0c);--lcd:repeating-linear-gradient(0deg,#0000 0 2px,#00000060 2px 3px);--osd:#7dffa6;--r:10px;--grainOp:.38;--keyGloss:.2;}
 
-/* ================= 本体 ================= */
-#device{position:relative;display:flex;flex-direction:column;overflow:hidden;background:var(--body);color:var(--fg);
-  box-shadow:0 0 0 2px #0008,0 20px 60px #000c;}
-/* ガラケー: 縦長・上半分が画面 */
-body[data-kind=g] #device{height:100dvh;width:min(100vw,50dvh);}
-@media (min-width:600px){body[data-kind=g] #device{border-radius:34px 34px 60px 60px;height:min(100dvh,900px);}}
-/* デジカメ/ビデオ: 横長なら画面+右側ボタン、縦長なら画面の下にボタン */
-body:not([data-kind=g]) #device{width:min(100vw,1100px);height:100dvh;flex-direction:row;}
+/* ================= 本体(レイアウト) ================= */
+#device{position:relative;display:flex;flex-direction:column;overflow:hidden;background:var(--body);color:var(--fg);isolation:isolate;
+  width:100vw;height:100dvh;
+  box-shadow:inset 0 1px 1px #ffffff70,inset 0 -3px 4px #0007,inset 2px 0 3px #ffffff26,inset -3px 0 4px #0005;}
+#device::after{content:"";position:absolute;inset:0;background:var(--grain);opacity:var(--grainOp);mix-blend-mode:overlay;pointer-events:none;z-index:0;}
+#device>*{position:relative;z-index:1;}
+
+/* --- ガラケー(縦) --- */
+body[data-kind=g] #device{width:min(100vw,54dvh);}
+/* --- デジカメ/ビデオ: 横長は右側にボタン、縦長は下にボタン --- */
+body:not([data-kind=g]) #device{flex-direction:row;}
 @media (orientation:portrait){body:not([data-kind=g]) #device{flex-direction:column;}}
-@media (min-width:900px) and (min-height:600px){body:not([data-kind=g]) #device{height:min(100dvh,760px);border-radius:var(--r);}}
 
-#screenBox{position:relative;padding:14px;display:flex;flex-direction:column;min-height:0;min-width:0;}
-body[data-kind=g] #screenBox{flex:0 0 47%;padding:calc(30px + env(safe-area-inset-top)) 16px 8px;}
-body:not([data-kind=g]) #screenBox{flex:1;padding:calc(12px + env(safe-area-inset-top)) 12px 12px;}
-body[data-kind=g] #screenBox::before{ /* スピーカー */
-  content:"";position:absolute;top:calc(12px + env(safe-area-inset-top));left:50%;width:56px;height:6px;margin-left:-28px;border-radius:3px;
-  background:repeating-linear-gradient(90deg,#0009 0 3px,#0003 3px 5px);}
-#bezel{position:relative;flex:1;min-height:0;border-radius:8px;overflow:hidden;background:var(--bezel);padding:5px;
-  box-shadow:0 0 0 3px var(--bezelring),inset 0 0 12px #000;}
-body[data-skin=g3] #bezel{border-radius:16px;}
-body[data-skin=v2] #bezel{border-radius:40% / 12%;padding:10px;} /* ビューファインダー風 */
+/* タブレット・PC: 机の上に本体を置いたような表示 */
+@media (min-width:600px) and (min-height:680px){
+  body[data-kind=g] #device{height:min(calc(100dvh - 48px),960px);width:min(calc((100dvh - 48px)*.5),480px);
+    border-radius:38px 38px 58px 58px;
+    box-shadow:inset 0 1px 1px #ffffff70,inset 0 -3px 4px #0007,inset 2px 0 3px #ffffff26,inset -3px 0 4px #0005,
+      0 2px 0 #0008,0 30px 70px #000d,0 10px 20px #0009;}
+}
+@media (min-width:700px) and (min-height:560px){
+  body:not([data-kind=g]) #device{width:min(calc(100vw - 48px),1200px);height:min(calc(100dvh - 48px),840px);border-radius:var(--r);
+    box-shadow:inset 0 1px 1px #ffffff70,inset 0 -3px 4px #0007,inset 2px 0 3px #ffffff26,inset -3px 0 4px #0005,
+      0 2px 0 #0008,0 30px 70px #000d,0 10px 20px #0009;}
+}
+@media (min-width:700px) and (min-height:560px) and (orientation:portrait){
+  body:not([data-kind=g]) #device{height:min(calc(100dvh - 48px),1100px);width:min(calc(100vw - 48px),820px);}
+}
+/* スマホ横向き(高さが低い): ガラケーも画面＋キーを横並びに */
+@media (orientation:landscape) and (max-height:560px){
+  body[data-kind=g] #device{flex-direction:row;width:100vw;height:100dvh;border-radius:0;}
+}
+
+/* ---- 画面部 ---- */
+#screenBox{display:flex;flex-direction:column;min-height:0;min-width:0;}
+body[data-kind=g] #screenBox{flex:0 0 46%;padding:calc(30px + env(safe-area-inset-top)) 16px 10px;}
+body:not([data-kind=g]) #screenBox{flex:1;padding:calc(clamp(10px,2.2vmin,22px) + env(safe-area-inset-top)) clamp(10px,2.2vmin,22px) clamp(10px,2.2vmin,22px);}
+@media (orientation:landscape) and (max-height:560px){
+  body[data-kind=g] #screenBox{flex:1;padding:12px 10px 12px calc(28px + env(safe-area-inset-left));}
+  body:not([data-kind=g]) #screenBox{padding-left:calc(10px + env(safe-area-inset-left));}
+}
+/* スピーカー穴 */
+body[data-kind=g] #screenBox::before{content:"";position:absolute;top:calc(12px + env(safe-area-inset-top));left:50%;width:64px;height:7px;margin-left:-32px;border-radius:4px;
+  background:radial-gradient(circle,#000c 0 1.3px,#0000 1.6px) 0 0/5px 7px;box-shadow:inset 0 1px 1px #0008,0 1px 0 #ffffff22;}
+@media (orientation:landscape) and (max-height:560px){
+  body[data-kind=g] #screenBox::before{top:50%;left:calc(12px + env(safe-area-inset-left));margin:-32px 0 0;width:7px;height:64px;background-size:7px 5px;}
+}
+/* 内側パネル(液晶の周りの段差) */
+#bezelWrap{flex:1;min-height:0;display:flex;padding:7px;border-radius:12px;background:var(--bezelring);
+  box-shadow:0 1px 0 #ffffff55,0 -1px 0 #0006,inset 0 1px 1px #fff6,inset 0 -1px 2px #0008;}
+body[data-skin=g3] #bezelWrap{border-radius:20px;}
+body[data-skin=v1] #bezelWrap{border-radius:14px;padding:12px 12px 12px 22px;background:linear-gradient(90deg,#2b3646 0 10px,#0000 10px),var(--bezelring);} /* 開閉式液晶のヒンジ側 */
+body[data-skin=v2] #bezelWrap{border-radius:46% / 16%;padding:16px; /* ゴムのアイカップ */
+  background:radial-gradient(ellipse at 50% 30%,#3b3d42,#0d0d0f 70%);box-shadow:0 4px 10px #000c,inset 0 2px 2px #ffffff22,inset 0 -6px 10px #000;}
+#bezel{position:relative;flex:1;min-height:0;overflow:hidden;background:var(--bezel);padding:4px;border-radius:6px;
+  box-shadow:inset 0 2px 6px #000,inset 0 0 0 1px #000;}
+body[data-skin=g3] #bezel{border-radius:14px;}
+body[data-skin=v2] #bezel{border-radius:40% / 12%;padding:8px;}
+/* ガラスの映り込み */
+#bezel::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:8;border-radius:inherit;
+  background:linear-gradient(118deg,#ffffff2a 0%,#ffffff10 22%,#0000 23%,#0000 70%,#ffffff08 100%);
+  box-shadow:inset 0 0 0 1px #ffffff10,inset 0 0 30px #0008;}
 #vf{position:relative;width:100%;height:100%;overflow:hidden;background:#000;touch-action:none;border-radius:inherit;}
 #vf::after{content:"";position:absolute;inset:0;pointer-events:none;background:var(--lcd);z-index:2;}
-body[data-skin=v2] #vf::after{box-shadow:inset 0 0 50px #000;}
+body[data-skin=v2] #vf::after{box-shadow:inset 0 0 60px #000;}
+
+/* ---- ヒンジ(折りたたみ機) ---- */
+#hinge{display:none;flex:none;height:20px;margin:0 6px;border-radius:10px;
+  background:linear-gradient(#000 0,#5b5e66 22%,#22242a 50%,#0c0d10 78%,#000);box-shadow:0 2px 3px #0008;}
+#hinge::before,#hinge::after{content:"";position:absolute;top:2px;bottom:2px;width:26%;border-radius:8px;background:var(--body);
+  box-shadow:inset 0 2px 2px #ffffff55,inset 0 -3px 3px #0008;}
+#hinge::before{left:0}#hinge::after{right:0}
+body[data-skin=g1] #hinge,body[data-skin=g3] #hinge{display:block;}
+@media (orientation:landscape) and (max-height:560px){#hinge{display:none!important}}
+
+/* ---- ランプ・ネジ ---- */
+#led{position:absolute;z-index:9;top:calc(10px + env(safe-area-inset-top));right:18px;width:8px;height:8px;border-radius:50%;
+  background:radial-gradient(circle at 35% 30%,#d7ffd9,#28c840 60%,#0b5e1a);box-shadow:0 0 6px #28c84099,inset 0 -1px 1px #0006;animation:led 3s ease-in-out infinite;}
+@keyframes led{50%{opacity:.35}}
+body.recording #led{background:radial-gradient(circle at 35% 30%,#ffd5d2,#ff2a1f 60%,#7a0a05);box-shadow:0 0 10px #ff2a1fcc;animation:bl 1s steps(2) infinite;}
+#device>.screw{display:none;position:absolute;z-index:9;width:9px;height:9px;border-radius:50%;
+  background:linear-gradient(45deg,#0000 42%,#0009 43% 57%,#0000 58%),radial-gradient(circle at 35% 30%,#f4f5f7,#8b9098 60%,#4b4f56);
+  box-shadow:0 1px 0 #ffffff55,inset 0 -1px 1px #0007;}
+body:not([data-kind=g]) #device>.screw{display:block;}
+.screw.s1{left:7px;top:7px}.screw.s2{right:7px;top:7px}.screw.s3{left:7px;bottom:7px}.screw.s4{right:7px;bottom:7px}
+
+/* ---- その他のエフェクト層 ---- */
 canvas#canvas{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);image-rendering:pixelated;}
 #flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;z-index:3;}
 #flash.go{animation:fl .28s ease-out;}
@@ -101,7 +196,7 @@ canvas#canvas{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
 #grid.on{opacity:1}
 
 /* ---- 画面上の表示(OSD) ---- */
-#osd{position:absolute;inset:0;z-index:5;pointer-events:none;color:var(--osd);font-family:'Orbitron','Press Start 2P',monospace;font-size:10px;
+#osd{position:absolute;inset:0;z-index:5;pointer-events:none;color:var(--osd);font-family:'Orbitron','Press Start 2P',monospace;font-size:clamp(9px,1.5vmin,13px);
   text-shadow:1px 1px 0 #000,0 0 3px #000;}
 .osdTop,.osdBot{position:absolute;left:7px;right:7px;display:flex;justify-content:space-between;align-items:center;gap:6px;}
 .osdTop{top:6px}.osdBot{bottom:6px}
@@ -113,60 +208,88 @@ canvas#canvas{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
 body.recording #recChip{display:flex}
 .o-g,.o-c,.o-v{display:none}
 body[data-kind=g] .o-g,body[data-kind=c] .o-c,body[data-kind=v] .o-v{display:inline}
-.soft{font-family:"Hiragino Sans","Noto Sans JP",sans-serif;font-weight:700;font-size:11px;}
 #osdInfo{font-variant-numeric:tabular-nums;}
 body[data-kind=v] #vtape{color:#fff}
 
-/* ---- ボタン類 ---- */
-#body{position:relative;display:flex;flex-direction:column;align-items:center;gap:10px;min-width:0;}
-body[data-kind=g] #body{flex:1;padding:4px 14px calc(14px + env(safe-area-inset-bottom));justify-content:space-between;}
-body:not([data-kind=g]) #body{padding:14px 14px calc(14px + env(safe-area-inset-bottom));}
-@media (orientation:landscape){body:not([data-kind=g]) #body{width:250px;flex:none;overflow-y:auto;justify-content:center;}}
+/* ================= 操作部 ================= */
+#body{display:flex;flex-direction:column;align-items:center;gap:clamp(6px,1.2dvh,12px);min-width:0;min-height:0;}
+body[data-kind=g] #body{flex:1;padding:clamp(4px,1dvh,10px) clamp(10px,4%,18px) calc(clamp(8px,1.6dvh,16px) + env(safe-area-inset-bottom));justify-content:space-between;}
+body:not([data-kind=g]) #body{padding:clamp(10px,2dvh,18px) 14px calc(clamp(10px,2dvh,18px) + env(safe-area-inset-bottom));}
+@media (orientation:landscape){body:not([data-kind=g]) #body{width:clamp(200px,24vw,290px);flex:none;overflow-y:auto;justify-content:center;
+  padding-right:calc(14px + env(safe-area-inset-right));}}
 @media (orientation:portrait){body:not([data-kind=g]) #body{width:100%;}}
-#brand{font-size:10px;letter-spacing:.14em;font-weight:700;opacity:.8;font-family:'Orbitron',sans-serif;text-align:center;}
+@media (orientation:landscape) and (max-height:560px){
+  body[data-kind=g] #body{flex:none;width:min(48vw,380px);padding:10px calc(12px + env(safe-area-inset-right)) 10px 6px;}
+}
+/* c2 のラバーグリップ */
+body[data-skin=c2] #body{background:radial-gradient(circle,#ffffff0d 0 1px,#0000 1.5px) 0 0/4px 4px,linear-gradient(90deg,#0000,#00000040);}
+@media (orientation:landscape){body[data-skin=c2] #body{border-left:1px solid #0008;box-shadow:inset 1px 0 0 #ffffff14;}}
+
+#brand{font-size:clamp(9px,1.3vmin,12px);letter-spacing:.16em;font-weight:700;font-family:'Orbitron',sans-serif;text-align:center;
+  color:var(--fg);opacity:.85;text-shadow:0 1px 0 #ffffff40,0 -1px 0 #0005;}
+body[data-skin=g1] #brand,body[data-skin=c2] #brand,body[data-skin=v2] #brand{text-shadow:0 -1px 0 #000,0 1px 0 #ffffff1a;}
 body[data-skin=g3] #brand{color:#fff;text-shadow:0 1px 0 #c9507f;}
 body[data-skin=v2] #brand{color:#7dffa6;}
-.key{margin:0;border:0;background:var(--key);color:var(--keyfg);border-radius:10px;font-weight:700;cursor:pointer;
-  box-shadow:0 2px 0 var(--keysh),inset 0 1px 0 #fff5;padding:0;}
-.key:active{transform:translateY(2px);box-shadow:0 0 0 var(--keysh);}
-.key.on{outline:2px solid var(--accent);color:var(--accent);}
-#cvPanel,#gPanel{display:flex;flex-direction:column;align-items:center;width:100%;}
-body[data-kind=g] #cvPanel,body:not([data-kind=g]) #gPanel{display:none;}
-#cvPanel{gap:10px;}
 
-/* コンデジ/ビデオ側 */
+/* 物理キー */
+.key{position:relative;margin:0;border:0;background:var(--key);color:var(--keyfg);border-radius:10px;font-weight:700;cursor:pointer;padding:0;
+  box-shadow:inset 0 1px 0 #ffffff66,inset 0 -1px 1px #0004,0 2px 0 var(--keysh),0 3px 6px #0006;transition:transform .05s,box-shadow .05s;}
+.key::before{content:"";position:absolute;left:4%;right:4%;top:2px;height:45%;border-radius:inherit;pointer-events:none;
+  background:linear-gradient(#fff,#fff0);opacity:calc(var(--keyGloss) * .5);}
+.key:active{transform:translateY(2px);box-shadow:inset 0 1px 2px #0006,0 0 0 var(--keysh),0 1px 2px #0006;}
+.key.on{color:color-mix(in srgb,var(--accent) 75%,#fff);box-shadow:inset 0 1px 0 #ffffff66,inset 0 -1px 1px #0004,0 2px 0 var(--keysh),0 3px 6px #0006,0 0 0 2px var(--accent);}
+#cvPanel,#gPanel{display:flex;flex-direction:column;align-items:center;width:100%;min-height:0;}
+body[data-kind=g] #cvPanel,body:not([data-kind=g]) #gPanel{display:none;}
+#cvPanel{gap:clamp(6px,1.2dvh,10px);}
+
+/* デジカメ/ビデオ側 */
 .chips{display:flex;gap:5px;flex-wrap:wrap;justify-content:center;}
-.chips .key{font-size:12px;padding:7px 11px;border-radius:14px;}
-#looks .key{font-size:11px;}
-#kind .key{padding:6px 18px;}
+.chips .key{font-size:clamp(10px,1.5dvh,13px);padding:clamp(5px,.9dvh,8px) clamp(9px,1.3vw,13px);border-radius:14px;}
+#looks .key{font-size:clamp(10px,1.4dvh,12px);}
+#kind .key{padding-left:18px;padding-right:18px;}
 #row{display:flex;align-items:center;justify-content:center;gap:12px;width:100%;max-width:340px;}
-#thumb{width:44px;height:44px;border-radius:8px;border:2px solid var(--keysh);background:#222 center/cover;cursor:pointer;padding:0;margin:0;}
-#shutter{width:64px;height:64px;border-radius:50%;border:4px solid var(--accent);position:relative;cursor:pointer;margin:0;padding:0;
-  background:var(--key);box-shadow:0 3px 0 var(--keysh);}
-#shutter::after{content:"";position:absolute;inset:7px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff,var(--accent) 70%);transition:all .12s;}
-#shutter:active::after{transform:scale(.86);}
-body.recording #shutter::after{inset:20px;border-radius:6px;background:var(--rec);}
-.round{width:40px;height:40px;border-radius:50%;font-size:20px;}
+#thumb{width:clamp(38px,6dvh,52px);height:clamp(38px,6dvh,52px);border-radius:8px;border:2px solid #0008;background:#111 center/cover;cursor:pointer;padding:0;margin:0;
+  box-shadow:inset 0 0 6px #000,0 1px 0 #ffffff40;}
+#shutter{--s:clamp(54px,9dvh,78px);width:var(--s);height:var(--s);border-radius:50%;border:0;position:relative;cursor:pointer;margin:0;padding:0;
+  background:conic-gradient(from 30deg,#f7f8fa,#8e939b,#eef0f3,#6f747c,#f7f8fa,#9ba0a8,#f7f8fa);box-shadow:0 3px 0 #0007,0 6px 12px #0007,inset 0 0 0 1px #0005;}
+#shutter::after{content:"";position:absolute;inset:16%;border-radius:50%;transition:all .12s;
+  background:radial-gradient(circle at 35% 28%,#fff 0,var(--accent) 45%,color-mix(in srgb,var(--accent) 55%,#000) 100%);box-shadow:inset 0 -2px 4px #0006,0 1px 2px #0008;}
+#shutter:active::after{transform:scale(.9);}
+body.recording #shutter::after{inset:32%;border-radius:6px;background:var(--rec);}
+.round{width:clamp(36px,5.5dvh,46px);height:clamp(36px,5.5dvh,46px);border-radius:50%;font-size:clamp(15px,2.4dvh,20px);}
 #mini{display:flex;gap:8px;}
 
-/* ガラケー側 */
-#gPanel{gap:8px;flex:1;justify-content:space-between;}
+/* ガラケー側(キーシート) */
+#gPanel{--dp:clamp(88px,15dvh,140px);gap:clamp(5px,1.1dvh,10px);flex:1;justify-content:space-between;}
 #softRow{display:flex;justify-content:space-between;width:100%;gap:10px;}
-#softRow .key{flex:1;padding:6px 0;font-size:12px;border-radius:18px;}
-#midRow{display:flex;align-items:center;justify-content:space-between;width:100%;}
-#midRow .side{width:62px;height:40px;border-radius:20px;font-size:12px;}
-#dpad{position:relative;width:128px;height:128px;border-radius:50%;background:var(--key);box-shadow:0 3px 0 var(--keysh),inset 0 2px 0 #fff4;}
-#dpad .d{position:absolute;margin:0;border:0;background:transparent;color:var(--keyfg);font-size:15px;width:36px;height:36px;cursor:pointer;opacity:.85;}
-#dpad .d:active{opacity:.4;}
-#dpad .u{top:3px;left:46px}#dpad .dn{bottom:3px;left:46px}#dpad .l{left:3px;top:46px}#dpad .r{right:3px;top:46px}
-#dpad #shutterG{position:absolute;left:34px;top:34px;width:60px;height:60px;border-radius:50%;border:0;cursor:pointer;
-  background:radial-gradient(circle at 35% 30%,#fff,var(--accent) 80%);box-shadow:0 2px 0 var(--keysh),inset 0 0 0 3px #fff6;font-size:11px;font-weight:700;color:#fff;text-shadow:0 1px 1px #0008;}
+#softRow .key{flex:1;padding:clamp(4px,.8dvh,7px) 0;font-size:clamp(10px,1.5dvh,12px);border-radius:16px 16px 8px 8px;}
+#midRow{display:flex;align-items:center;justify-content:space-between;width:100%;gap:6px;}
+#midRow .side{width:clamp(52px,16%,68px);height:clamp(30px,5dvh,42px);border-radius:21px;font-size:clamp(10px,1.4dvh,12px);}
+#dpad{position:relative;flex:none;width:var(--dp);height:var(--dp);border-radius:50%;
+  background:conic-gradient(from 45deg,#ffffff22,#0000 25%,#ffffff18 50%,#0000 75%,#ffffff22),var(--key);
+  box-shadow:inset 0 2px 1px #ffffff55,inset 0 -3px 4px #0006,0 3px 0 var(--keysh),0 6px 12px #0007;}
+#dpad .d{position:absolute;margin:0;border:0;background:transparent;color:var(--keyfg);font-size:clamp(11px,1.8dvh,15px);width:30%;height:30%;cursor:pointer;opacity:.8;}
+#dpad .d:active{opacity:.35;}
+#dpad .u{top:1%;left:35%}#dpad .dn{bottom:1%;left:35%}#dpad .l{left:1%;top:35%}#dpad .r{right:1%;top:35%}
+#dpad #shutterG{position:absolute;left:27%;top:27%;width:46%;height:46%;border-radius:50%;border:0;cursor:pointer;
+  background:radial-gradient(circle at 35% 28%,#fff 0,var(--accent) 55%,color-mix(in srgb,var(--accent) 60%,#000) 100%);
+  box-shadow:0 0 0 3px #0003,0 2px 0 var(--keysh),inset 0 -2px 4px #0005,inset 0 2px 2px #fff8;font-size:clamp(9px,1.4dvh,12px);font-weight:700;color:#fff;text-shadow:0 1px 1px #0008;}
 #dpad #shutterG:active{transform:scale(.93);}
-body.recording #dpad #shutterG{background:var(--rec);}
-#numpad{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;width:100%;max-width:300px;}
-#numpad .key{padding:5px 0 4px;border-radius:12px;font-size:15px;line-height:1.1;display:flex;flex-direction:column;align-items:center;}
-#numpad .key small{font-size:8px;font-weight:400;opacity:.75;}
-@media (max-height:700px){#numpad .key{padding:2px 0}#dpad{width:110px;height:110px}#dpad .u{left:37px}#dpad .dn{left:37px}#dpad .l{top:37px}#dpad .r{top:37px}#dpad #shutterG{left:25px;top:25px}}
+body.recording #dpad #shutterG{background:radial-gradient(circle at 35% 28%,#fff 0,var(--rec) 55%,#7a0a05 100%);}
+#numpad{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(4px,.8dvh,8px) 8px;width:100%;max-width:310px;padding:clamp(5px,1dvh,9px);border-radius:16px;
+  background:var(--plate);box-shadow:inset 0 2px 4px #0005,0 1px 0 #ffffff30;}
+#numpad .key{padding:clamp(2px,.6dvh,6px) 0;border-radius:12px 12px 16px 16px;font-size:clamp(13px,2.1dvh,17px);line-height:1.1;display:flex;flex-direction:column;align-items:center;}
+#numpad .key small{font-size:clamp(7px,1dvh,9px);font-weight:400;opacity:.75;}
+@media (orientation:landscape) and (max-height:560px){
+  #gPanel{--dp:clamp(80px,26dvh,120px);display:grid;grid-template-columns:auto 1fr;grid-template-rows:auto 1fr;gap:6px 10px;align-items:center;}
+  body[data-kind=g] #gPanel{display:grid;}
+  #softRow{grid-column:1 / -1;}
+  #midRow{flex-direction:column;width:auto;gap:6px;}
+  #midRow .side{width:var(--dp);height:26px;}
+  #numpad{gap:4px 6px;padding:5px;}
+  #numpad .key{padding:1px 0;font-size:13px;}
+  #numpad .key small{font-size:7px;}
+}
 
 /* ---- シート/ダイアログ ---- */
 #sheet{position:fixed;left:0;right:0;bottom:0;max-width:520px;margin:0 auto;z-index:10;background:#1c1c1eee;color:#fff;backdrop-filter:blur(18px);
@@ -206,7 +329,8 @@ body.recording #dpad #shutterG{background:var(--rec);}
 
 <body data-skin="g1" data-kind="g">
 <div id="device">
-  <div id="screenBox"><div id="bezel"><div id="vf">
+  <div id="led"></div><i class="screw s1"></i><i class="screw s2"></i><i class="screw s3"></i><i class="screw s4"></i>
+  <div id="screenBox"><div id="bezelWrap"><div id="bezel"><div id="vf">
     <canvas id="canvas" width="480" height="640"></canvas>
     <div id="grid"></div>
     <div id="focus"></div>
@@ -228,7 +352,8 @@ body.recording #dpad #shutterG{background:var(--rec);}
         <span id="osdClock"></span>
       </div>
     </div>
-  </div></div></div>
+  </div></div></div></div>
+  <div id="hinge"></div>
 
   <div id="body">
     <div id="brand"></div>
@@ -938,13 +1063,14 @@ function openPreview(){
 $("pvClose").onclick=()=>{$("preview").classList.remove("open");$("pvBody").innerHTML="";};
 
 /* ================= 情報・更新履歴 ================= */
-const APP_VERSION="3.0.2";
+const APP_VERSION="3.1.0";
 const CONTACT={
   github:"https://github.com/higashiikenaga/heisei_camera",
   githubLabel:"github.com/higashiikenaga/heisei_camera",
   email:"sanyokai05@gmail.com"
 };
 const HISTORY=[
+  ["3.1.0","2026-10-23","スマホ(縦・横)・タブレット・PCそれぞれに合わせたレイアウトに対応(スマホ横向きではガラケーも横並び表示)。本体の質感をリアルに(光沢プラスチック、アルミのヘアライン、パール＋ラメ、シボ加工のラバーグリップ、液晶ガラスの映り込み、ヒンジ、ネジ、充電/録画ランプ、机の木目背景など)"],
   ["3.0.2","2026-10-03","特定の規格・商標に近い名称を「デジタルテープ」「アナログテープ」などの一般的な呼び名に変更"],
   ["3.0.1","2026-10-03","OGP・SEO設定、ファビコン、PWAマニフェストを追加(SNSでリンクを共有したときのプレビュー画像に対応)"],
   ["3.0.0","2026-10-03","よく考えたら平成カメラなのに令和の最新スマートフォン風デザインはおかしいので、デザインを刷新。ガラケー風(ブラック折りたたみ/シルバー/ピンク)3種と、デジカメ(シルバー/ブラック)・ビデオカメラ(デジタルテープ/アナログテープ)風4種の計7種から選べるように(設定→デザイン)。十字キー・テンキーでの操作、PCのキーボード操作にも対応"],
