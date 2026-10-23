@@ -92,6 +92,15 @@ body[data-skin=v2]{--body:radial-gradient(ellipse at 30% 10%,#ffffff10,#0000 55%
   --fg:#c9cdd3;--key:linear-gradient(#45484f,#26282d 55%,#1b1c20);--keyfg:#d9dde2;--keysh:#000;--accent:#39ff7a;--plate:#0000;
   --bezel:#000;--bezelring:linear-gradient(#2c2e33,#0b0b0c);--lcd:repeating-linear-gradient(0deg,#0000 0 2px,#00000060 2px 3px);--osd:#7dffa6;--r:10px;--grainOp:.38;--keyGloss:.2;}
 
+/* t1: 2000年代後半の業務用テレビカメラ(マットグレー＋ビューファインダーのフード) */
+body[data-skin=t1]{--body:radial-gradient(circle,#ffffff0a 0 1px,#0000 1.4px) 0 0/3px 3px,radial-gradient(ellipse at 30% 10%,#ffffff18,#0000 55%),linear-gradient(#4a4d53,#2a2c30 60%,#1d1e21);
+  --fg:#d8dade;--key:linear-gradient(#5d6067,#383a40 55%,#2a2b30);--keyfg:#eceef1;--keysh:#0b0b0c;--accent:#ffb000;--plate:#0000;
+  --bezel:#000;--bezelring:linear-gradient(#1c1d20,#08080a);--lcd:repeating-linear-gradient(0deg,#0000 0 2px,#00000030 2px 3px);--osd:#fff;--r:10px;--grainOp:.3;--keyGloss:.25;}
+body[data-skin=t1] #bezelWrap{position:relative;padding:18px 14px 14px;border-radius:12px 12px 8px 8px;
+  background:linear-gradient(#0000 0 70%,#ffffff08),linear-gradient(#16171a,#050506);box-shadow:0 6px 14px #000c,inset 0 2px 1px #ffffff1c,inset 0 -4px 8px #000;}
+body[data-skin=t1] #bezelWrap::before{content:"";position:absolute;left:8%;right:8%;top:-2px;height:10px;border-radius:0 0 8px 8px;background:#000a;}
+body[data-skin=t1] #brand{color:#ffb000;}
+
 /* ================= 本体(レイアウト) ================= */
 #device{position:relative;display:flex;flex-direction:column;overflow:hidden;background:var(--body);color:var(--fg);isolation:isolate;
   width:100vw;height:100dvh;
@@ -194,6 +203,19 @@ canvas#canvas{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
    linear-gradient(90deg,transparent 33.2%,#fff6 33.3%,transparent 33.5%,transparent 66.5%,#fff6 66.6%,transparent 66.8%),
    linear-gradient(transparent 33.2%,#fff6 33.3%,transparent 33.5%,transparent 66.5%,#fff6 66.6%,transparent 66.8%);}
 #grid.on{opacity:1}
+#zebra{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);pointer-events:none;z-index:2;image-rendering:pixelated;display:none;}
+body[data-kind=t] #zebra{display:block;}
+/* セーフエリア枠(テレビカメラ) */
+#safe{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);pointer-events:none;z-index:2;display:none;}
+body[data-kind=t] #safe{display:block;}
+#safe::before,#safe::after{content:"";position:absolute;border:1px dashed #ffffffa0;}
+#safe::before{inset:5%;}#safe::after{inset:10%;border-style:solid;border-color:#ffffff60;}
+#safe i{position:absolute;left:50%;top:50%;width:18px;height:18px;margin:-9px 0 0 -9px;
+  background:linear-gradient(#fffa,#fffa) center/1px 100% no-repeat,linear-gradient(#fffa,#fffa) center/100% 1px no-repeat;}
+#tiltGuide{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);pointer-events:none;z-index:2;opacity:0;transition:opacity .4s;}
+#tiltGuide.on{opacity:1;}
+#tiltGuide::before,#tiltGuide::after{content:"";position:absolute;left:0;right:0;border-top:1px dashed #ffd60a;}
+#tiltGuide::before{top:var(--a);}#tiltGuide::after{top:var(--b);}
 
 /* ---- 画面上の表示(OSD) ---- */
 #osd{position:absolute;inset:0;z-index:5;pointer-events:none;color:var(--osd);font-family:'Orbitron','Press Start 2P',monospace;font-size:clamp(9px,1.5vmin,13px);
@@ -206,9 +228,10 @@ canvas#canvas{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
 #recChip i{width:7px;height:7px;border-radius:50%;background:#fff;animation:bl 1s steps(2) infinite;}
 @keyframes bl{50%{opacity:.1}}
 body.recording #recChip{display:flex}
-.o-g,.o-c,.o-v{display:none}
-body[data-kind=g] .o-g,body[data-kind=c] .o-c,body[data-kind=v] .o-v{display:inline}
+.o-g,.o-c,.o-v,.o-t{display:none}
+body[data-kind=g] .o-g,body[data-kind=c] .o-c,body[data-kind=v] .o-v,body[data-kind=t] .o-t{display:inline}
 #osdInfo{font-variant-numeric:tabular-nums;}
+@media (max-width:480px){body[data-kind] .o-t.wide{display:none}}
 body[data-kind=v] #vtape{color:#fff}
 
 /* ================= 操作部 ================= */
@@ -332,6 +355,9 @@ body.recording #dpad #shutterG{background:radial-gradient(circle at 35% 28%,#fff
   <div id="led"></div><i class="screw s1"></i><i class="screw s2"></i><i class="screw s3"></i><i class="screw s4"></i>
   <div id="screenBox"><div id="bezelWrap"><div id="bezel"><div id="vf">
     <canvas id="canvas" width="480" height="640"></canvas>
+    <canvas id="zebra"></canvas>
+    <div id="safe"><i></i></div>
+    <div id="tiltGuide"></div>
     <div id="grid"></div>
     <div id="focus"></div>
     <div id="shutterBlack"></div>
@@ -343,12 +369,15 @@ body.recording #dpad #shutterG{background:radial-gradient(circle at 35% 28%,#fff
           <span class="o-g">Y.ıll ▮▮▮</span>
           <span class="o-c">▮▮▮ 🔋</span>
           <span class="o-v" id="vtape">SP 60min ▮▮▮</span>
+          <span class="o-t">CH1 ▮▮▮ CH2 ▮▮▯　14.8V</span>
         </div>
       </div>
       <div class="osdBot">
         <span id="osdInfo">4:3 ×1.0</span>
         <span class="o-c" id="osdRes">AUTO</span>
         <span class="o-v" id="osdVid">STBY</span>
+        <span class="o-t" id="osdTC">TCR 00:00:00:00</span>
+        <span class="o-t wide">F2.8 0dB 5600K</span>
         <span id="osdClock"></span>
       </div>
     </div>
@@ -364,7 +393,7 @@ body.recording #dpad #shutterG{background:radial-gradient(circle at 35% 28%,#fff
         <button class="key" data-act="ratio:16:9">16:9</button><button class="key" data-act="ratio:4:3">4:3</button><button class="key" data-act="ratio:1:1">1:1</button><button class="key" data-act="ratio:FULL">全画面</button>
       </div>
       <div id="zoomPill" class="chips">
-        <button class="key" data-act="zoomN:1">1×</button><button class="key" data-act="zoomN:2">2×</button><button class="key" data-act="zoomN:4">4×</button>
+        <button class="key" data-act="zoomN:1">1×</button><button class="key" data-act="zoomN:2">2×</button><button class="key" data-act="zoomN:4">4×</button><button class="key" data-act="tilt">ミニチュア</button>
       </div>
       <div id="looks" class="chips"></div>
       <div id="kind" class="chips">
@@ -419,14 +448,18 @@ body.recording #dpad #shutterG{background:radial-gradient(circle at 35% 28%,#fff
         <option value="g2">シルバー(ストレート)</option>
         <option value="g3">ピンク(ギャル系)</option>
       </optgroup>
-      <optgroup label="デジカメ・ビデオカメラ風">
+      <optgroup label="デジカメ・ビデオカメラ・テレビカメラ風">
         <option value="c1">デジカメ シルバー</option>
         <option value="c2">デジカメ ブラック</option>
         <option value="v1">ビデオカメラ デジタルテープ</option>
         <option value="v2">ビデオカメラ アナログテープ</option>
+        <option value="t1">テレビカメラ(2000年代後半)</option>
       </optgroup>
     </select></div>
   <div class="set"><span>ノイズ・劣化量</span><input type="range" id="tape" min="0" max="100" value="45"></div>
+  <div class="set"><span>チルトシフト(ミニチュア風)</span><input type="checkbox" id="tilt"></div>
+  <div class="set"><span>　ぼかしの強さ</span><input type="range" id="tiltAmt" min="0" max="100" value="60"></div>
+  <div class="set"><span>　ピント位置(画面タップでも可)</span><input type="range" id="tiltPos" min="10" max="90" value="55"></div>
   <div class="set"><span>日付の写し込み</span><input type="checkbox" id="stamp" checked></div>
   <div class="set"><span>🎙 録音</span><input type="checkbox" id="mic" checked></div>
   <div class="set"><span>🔊 シャッター音</span><input type="checkbox" id="sound" checked></div>
@@ -458,7 +491,8 @@ const LOOKS={
   cmos:{name:"CMOS",label:"CMOS ケータイ(2008)",fps:24},
   "8mm":{name:"8ミリ風",label:"8ミリフィルム風",fps:12},
   vhs:{name:"アナログテープ",label:"アナログテープ(ホームビデオ風)",fps:15},
-  dv:{name:"デジタルテープ",label:"デジタルテープ(ハンディ型風)",fps:30,hiss:.35}
+  dv:{name:"デジタルテープ",label:"デジタルテープ(ハンディ型風)",fps:30,hiss:.35},
+  tv:{name:"TVカメラ",label:"テレビカメラ(2008)",fps:30,hiss:.2}
 };
 LOOKS.ccd.hiss=.5;LOOKS.cmos.hiss=.4;LOOKS["8mm"].hiss=1.2;LOOKS.vhs.hiss=1;
 let look="ccd",kind="photo",facing="environment",zoom=1,recording=false;
@@ -538,7 +572,7 @@ function fitCanvas(){
   else{const [rw,rh]=ratioKey.split(":").map(Number);r=portrait?rh/rw:rw/rh;}                 // 画面の向きに合わせて 9:16 / 3:4 も自動で
   // 表示サイズ(画面に収まる最大)
   let cw=W,ch=W/r;if(ch>H){ch=H;cw=H*r;}
-  for(const el of[canvas,$("grid")]){el.style.width=cw+"px";el.style.height=ch+"px";}
+  for(const el of[canvas,$("grid"),$("zebra"),$("safe"),$("tiltGuide")]){el.style.width=cw+"px";el.style.height=ch+"px";}
   if(recording)return;
   // 内部解像度(レトロ感のため低解像度のまま)
   if(r>=1){LH=240;LW=Math.round(240*r/2)*2;}else{LW=240;LH=Math.round(240/r/2)*2;}
@@ -778,17 +812,98 @@ function estimateSkew(d,w,h){
   prevCol=col;
 }
 
+/* ---- 2000年代後半のテレビカメラ(SD/HD過渡期の業務用) ----
+   ・インターレース: 奇数ラインは1フィールド前の映像 → 動くと櫛状のギザギザ
+   ・ディテール強調(輪郭の白縁/黒縁)・ニー処理(ハイライトを寝かせる)
+   ・やや青みのクリアな発色、ほぼノイズレス */
+let tvPrev=null,tvCur=null,tvL=null;
+function processTV(d,w,h,k){
+  if(!tvPrev||tvPrev.length!==d.length){tvPrev=new Uint8ClampedArray(d);tvCur=new Uint8ClampedArray(d.length);}
+  if(!tvL||tvL.length!==w)tvL=new Float32Array(w);
+  tvCur.set(d);
+  const inter=k>.05,det=.7+k*.9;
+  for(let y=0;y<h;y++){
+    const src=(inter&&(y&1))?tvPrev:tvCur;
+    const o=y*w*4;
+    for(let x=0;x<w;x++){const i=o+x*4;tvL[x]=.299*src[i]+.587*src[i+1]+.114*src[i+2];}
+    for(let x=0;x<w;x++){
+      const i=o+x*4;
+      let r=src[i],g=src[i+1],b=src[i+2];
+      const L=tvL[x],e=(L-(tvL[x>0?x-1:x]+tvL[x<w-1?x+1:x])/2)*det; // 輪郭強調
+      r=L+(r-L)*1.12+e;g=L+(g-L)*1.12+e;b=L+(b-L)*1.12+e;
+      r=r*.98+3;g=g+3;b=b*1.04+5;                                    // 少し青み＋ペデスタル
+      if(r>190)r=190+(r-190)*.5;if(g>190)g=190+(g-190)*.5;if(b>190)b=190+(b-190)*.5; // ニー
+      const n=(Math.random()-.5)*5*k;
+      d[i]=clamp(r+n);d[i+1]=clamp(g+n);d[i+2]=clamp(b+n);
+    }
+  }
+  const t=tvPrev;tvPrev=tvCur;tvCur=t;
+}
+
+/* ---- チルトシフト(ミニチュア風) ----
+   ピント面の上下を段階的にぼかし、彩度とコントラストを上げてジオラマのように見せる */
+const tsSmall=document.createElement("canvas"),tsBlur=document.createElement("canvas");
+function tiltOn(){return $("tilt").checked;}
+function tiltBand(){
+  const s=+$("tiltAmt").value/100,c=+$("tiltPos").value/100;
+  const half=.06+(1-s)*.08,fea=.18+(1-s)*.06;
+  return {s,c,half,fea};
+}
+function applyTiltShift(){
+  if(!tiltOn())return;
+  const {s,c,half,fea}=tiltBand();
+  const f=3+s*6,w=Math.max(8,Math.round(LW/f)),h=Math.max(8,Math.round(LH/f));
+  if(tsSmall.width!==w||tsSmall.height!==h){tsSmall.width=w;tsSmall.height=h;}
+  if(tsBlur.width!==LW||tsBlur.height!==LH){tsBlur.width=LW;tsBlur.height=LH;}
+  const sc=tsSmall.getContext("2d"),bc=tsBlur.getContext("2d");
+  sc.imageSmoothingEnabled=true;sc.imageSmoothingQuality="high";sc.drawImage(low,0,0,w,h);
+  bc.globalCompositeOperation="copy";bc.imageSmoothingEnabled=true;bc.imageSmoothingQuality="high";
+  bc.drawImage(tsSmall,0,0,LW,LH);
+  // ピント面だけ透明にするマスク
+  bc.globalCompositeOperation="destination-in";
+  const g=bc.createLinearGradient(0,0,0,LH);
+  const st=[[0,1],[c-half-fea,1],[c-half,0],[c+half,0],[c+half+fea,1],[1,1]];
+  let prev=0;
+  for(const [o,a] of st){const oo=Math.max(prev,Math.min(1,Math.max(0,o)));prev=oo;g.addColorStop(oo,`rgba(0,0,0,${a})`);}
+  bc.fillStyle=g;bc.fillRect(0,0,LW,LH);
+  bc.globalCompositeOperation="source-over";
+  // ミニチュアらしい濃い発色
+  if("filter" in lctx){lctx.filter=`saturate(${1.25+s*.3}) contrast(1.08)`;lctx.drawImage(low,0,0);lctx.filter="none";}
+  lctx.drawImage(tsBlur,0,0);
+}
+function showTiltGuide(){
+  const {c,half}=tiltBand(),g=$("tiltGuide");
+  g.style.setProperty("--a",((c-half)*100)+"%");g.style.setProperty("--b",((c+half)*100)+"%");
+  g.classList.add("on");clearTimeout(showTiltGuide.t);showTiltGuide.t=setTimeout(()=>g.classList.remove("on"),1200);
+}
+
+/* ---- ゼブラ(テレビカメラのビューファインダー表示。録画・写真には入らない) ---- */
+const zc=document.getElementById("zebra"),zctx=zc.getContext("2d");
+let zImg=null;
+function drawZebra(){
+  if(document.body.dataset.kind!=="t")return;
+  if(zc.width!==LW||zc.height!==LH){zc.width=LW;zc.height=LH;zImg=null;}
+  if(!zImg)zImg=zctx.createImageData(LW,LH);
+  const src=lctx.getImageData(0,0,LW,LH).data,z=zImg.data,ph=(frameN>>1)%8;
+  for(let y=0,i=0;y<LH;y++)for(let x=0;x<LW;x++,i+=4){
+    const L=.299*src[i]+.587*src[i+1]+.114*src[i+2];
+    if(L>235){const on=((x+y+ph)&7)<4;z[i]=z[i+1]=z[i+2]=on?255:0;z[i+3]=on?200:120;}
+    else z[i+3]=0;
+  }
+  zctx.putImageData(zImg,0,0);
+}
+
 /* ================= 描画ループ ================= */
 function drawDateStamp(){
   if(!$("stamp").checked)return;
   const n=new Date(),p=v=>String(v).padStart(2,"0");
-  const t=(look==="vhs"||look==="dv")?`${n.getFullYear()}.${p(n.getMonth()+1)}.${p(n.getDate())}  ${p(n.getHours())}:${p(n.getMinutes())}`
+  const t=(look==="vhs"||look==="dv"||look==="tv")?`${n.getFullYear()}.${p(n.getMonth()+1)}.${p(n.getDate())}  ${p(n.getHours())}:${p(n.getMinutes())}`
           :`'${String(n.getFullYear()).slice(-2)} ${p(n.getMonth()+1)} ${p(n.getDate())}`;
   ctx.font=`${Math.round(canvas.width/30)}px 'Press Start 2P',monospace`;
   ctx.textAlign="right";ctx.textBaseline="alphabetic";
   const x=canvas.width-canvas.width*.04,y=canvas.height-canvas.height*.035;
   ctx.fillStyle="#ff7a00";ctx.shadowColor="#ff3d0088";ctx.shadowBlur=4;
-  if(look==="vhs"||look==="dv"){ctx.fillStyle="#fff";ctx.shadowColor="#0008";}
+  if(look==="vhs"||look==="dv"||look==="tv"){ctx.fillStyle="#fff";ctx.shadowColor="#0008";}
   ctx.fillText(t,x,y);ctx.shadowBlur=0;
 }
 
@@ -808,9 +923,12 @@ function render(){
       if(look==="ccd")processCCD(img.data,LW,LH,k);
       else if(look==="cmos"){estimateSkew(img.data,LW,LH);processCMOS(img.data,LW,LH,k);}
       else if(look==="8mm")process8mm(img.data,LW,LH,k);
+      else if(look==="tv")processTV(img.data,LW,LH,k);
       else processVHS(img.data,LW,LH,k);
       lctx.putImageData(img,0,0);
     }
+    applyTiltShift();
+    drawZebra();
     ctx.imageSmoothingEnabled=false;
     ctx.fillStyle="#000";ctx.fillRect(0,0,canvas.width,canvas.height);
     if(look==="cmos"&&Math.abs(skew)>.3){ // 行ごとのずれ（ジェロ効果）
@@ -831,6 +949,10 @@ function render(){
   if(recording){
     const s=Math.floor((Date.now()-recStartTime)/1000);
     $("timecode").textContent=`${String(s/60|0).padStart(2,"0")}:${String(s%60).padStart(2,"0")}`;
+    if(document.body.dataset.kind==="t"){ // タイムコード(時:分:秒:フレーム)
+      const ms=Date.now()-recStartTime,fr=Math.floor(ms/1000*30)%30,p=v=>String(v).padStart(2,"0");
+      $("osdTC").textContent=`TCR ${p(s/3600|0)}:${p((s%3600)/60|0)}:${p(s%60)}:${p(fr)}`;
+    }
   }
   requestAnimationFrame(render);
 }
@@ -866,7 +988,7 @@ function buildTapeAudio(){
   const dest=a.createMediaStreamDestination();
   const nodes=[];const add=n=>{nodes.push(n);return n;};
   const k=amount(),hissF=LOOKS[look].hiss??1;
-  const lpf=look==="vhs"?9000:look==="8mm"?7000:look==="dv"?15000:12000;
+  const lpf=look==="vhs"?9000:look==="8mm"?7000:look==="dv"?15000:look==="tv"?16000:12000;
   const mic=stream&&stream.getAudioTracks()[0];
   if(mic){
     const src=add(a.createMediaStreamSource(new MediaStream([mic])));
@@ -957,7 +1079,8 @@ const SKINS={
   c1:{k:"c",look:"ccd",brand:"HEISEI DIGITAL  3.2 MEGA PIXELS"},
   c2:{k:"c",look:"ccd",brand:"HEISEI ZOOM 10x  5.0MP"},
   v1:{k:"v",look:"dv",brand:"HEISEI DIGITAL TAPE CAM"},
-  v2:{k:"v",look:"vhs",brand:"HEISEI ANALOG TAPE CAM"}
+  v2:{k:"v",look:"vhs",brand:"HEISEI ANALOG TAPE CAM"},
+  t1:{k:"t",look:"tv",brand:"HEISEI BROADCAST  1080i / 480i",ratio:"16:9"}
 };
 let skin="g1";
 const looksEl=$("looks");
@@ -980,7 +1103,7 @@ function toggleGrid(){$("grid").classList.toggle("on");}
 async function flipCam(){if(recording)return;facing=facing==="environment"?"user":"environment";await startCamera();}
 function refreshUI(){
   document.body.classList.toggle("video",kind==="video");
-  $("lookName").textContent=LOOKS[look].name;
+  $("lookName").textContent=LOOKS[look].name+(tiltOn()?" ◇MINI":"");
   document.querySelectorAll("[data-act]").forEach(el=>{
     const a=el.dataset.act;let on=null;
     if(a.startsWith("look:"))on=a.slice(5)===look;
@@ -988,11 +1111,13 @@ function refreshUI(){
     else if(a.startsWith("kind:"))on=a.slice(5)===kind;
     else if(a.startsWith("zoomN:"))on=+a.slice(6)===Math.round(zoom)&&Math.abs(zoom-Math.round(zoom))<.15;
     else if(a==="grid")on=$("grid").classList.contains("on");
+    else if(a==="tilt")on=tiltOn();
     if(on!==null&&el.classList.contains("key"))el.classList.toggle("on",on);
   });
   $("osdInfo").textContent=`${ratioKey==="FULL"?"FULL":ratioKey} ×${zoom.toFixed(1)}`;
   $("osdRes").textContent=`AUTO ${LW}×${LH}`;
   $("osdVid").textContent=recording?"● REC":"STBY";
+  if(!recording)$("osdTC").textContent="TCR 00:00:00:00";
   $("shutterG").textContent=kind==="video"?(recording?"停止":"録画"):"撮影";
 }
 function act(a){
@@ -1000,6 +1125,7 @@ function act(a){
   else if(a==="gear")$("sheet").classList.add("open");
   else if(a==="about"){$("sheet").classList.remove("open");$("about").classList.add("open");}
   else if(a==="grid"){toggleGrid();refreshUI();}
+  else if(a==="tilt"){$("tilt").checked=!$("tilt").checked;refreshUI();if(tiltOn())showTiltGuide();}
   else if(a==="flip")flipCam();
   else if(a==="thumb")openPreview();
   else if(a==="look+")cycleLook(1);
@@ -1025,7 +1151,7 @@ function applySkin(id,resetLook){
   skin=id;document.body.dataset.skin=id;document.body.dataset.kind=d.k;
   $("brand").textContent=d.brand;$("skin").value=id;
   try{localStorage.setItem("heisei_skin",id);}catch(e){}
-  if(resetLook){if(LOOKS[d.look])look=d.look;kind=d.k==="v"?"video":"photo";prevCol=null;skew=0;}
+  if(resetLook){if(LOOKS[d.look])look=d.look;kind=(d.k==="v"||d.k==="t")?"video":"photo";if(d.ratio)ratioKey=d.ratio;prevCol=null;skew=0;}
   refreshUI();
   requestAnimationFrame(fitCanvas);
 }
@@ -1033,6 +1159,8 @@ $("skin").onchange=e=>{if(recording){$("skin").value=skin;return;}applySkin(e.ta
 $("closeSheet").onclick=()=>$("sheet").classList.remove("open");
 $("aboutBtn").onclick=()=>act("about");
 $("mic").onchange=()=>{if(!recording)startCamera();};
+$("tilt").onchange=()=>{refreshUI();if(tiltOn())showTiltGuide();};
+$("tiltAmt").oninput=$("tiltPos").oninput=()=>{if(tiltOn())showTiltGuide();};
 setInterval(()=>{const n=new Date(),p=v=>String(v).padStart(2,"0");$("osdClock").textContent=`${p(n.getHours())}:${p(n.getMinutes())}`;},1000);
 
 // タップでフォーカス枠、ピンチでズーム
@@ -1041,6 +1169,10 @@ vf.addEventListener("pointerdown",e=>{
   const r=vf.getBoundingClientRect(),f=$("focus");
   f.style.left=(e.clientX-r.left)+"px";f.style.top=(e.clientY-r.top)+"px";
   f.classList.remove("go");void f.offsetWidth;f.classList.add("go");
+  if(tiltOn()){ // チルトシフト中はタップした高さにピントを合わせる
+    const cr=canvas.getBoundingClientRect(),y=(e.clientY-cr.top)/cr.height;
+    $("tiltPos").value=Math.round(Math.max(.1,Math.min(.9,y))*100);showTiltGuide();
+  }
 });
 vf.addEventListener("touchmove",e=>{
   if(e.touches.length===2){
@@ -1063,13 +1195,14 @@ function openPreview(){
 $("pvClose").onclick=()=>{$("preview").classList.remove("open");$("pvBody").innerHTML="";};
 
 /* ================= 情報・更新履歴 ================= */
-const APP_VERSION="3.1.0";
+const APP_VERSION="3.2.0";
 const CONTACT={
   github:"https://github.com/higashiikenaga/heisei_camera",
   githubLabel:"github.com/higashiikenaga/heisei_camera",
   email:"sanyokai05@gmail.com"
 };
 const HISTORY=[
+  ["3.2.0","2026-10-23","2000年代後半のテレビカメラ風ルック(インターレースの櫛状ノイズ、輪郭強調、ニー処理)と、業務用テレビカメラ風デザイン(ゼブラ表示・セーフエリア枠・タイムコード)を追加。チルトシフト(ミニチュア風)に対応(画面タップでピント位置を移動)。README.mdを追加"],
   ["3.1.0","2026-10-23","スマホ(縦・横)・タブレット・PCそれぞれに合わせたレイアウトに対応(スマホ横向きではガラケーも横並び表示)。本体の質感をリアルに(光沢プラスチック、アルミのヘアライン、パール＋ラメ、シボ加工のラバーグリップ、液晶ガラスの映り込み、ヒンジ、ネジ、充電/録画ランプ、机の木目背景など)"],
   ["3.0.2","2026-10-03","特定の規格・商標に近い名称を「デジタルテープ」「アナログテープ」などの一般的な呼び名に変更"],
   ["3.0.1","2026-10-03","OGP・SEO設定、ファビコン、PWAマニフェストを追加(SNSでリンクを共有したときのプレビュー画像に対応)"],
